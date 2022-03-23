@@ -15,15 +15,15 @@ final class PublicResolverContractTests: XCTestCase {
         let client = try JSONRPC(url: "https://cloudflare-eth.com/")
         let contract = PublicResolverContract(client: client, address: try! Address("0x4976fb03c32e5b8cfe2b6ccb31c09ba78ebaba41"))
 
-        let ensureSupported = try await contract.supportsInterface(funcHash: "01ffc9a7")
+        let ensureSupported = try await contract.supportsInterface(funcHash: contract.interfaces["supportsInterface"]!)
         XCTAssertTrue(ensureSupported)
         let ensureUnsupported = try await contract.supportsInterface(funcHash: "ffffffff")
         XCTAssertFalse(ensureUnsupported)
-        let supportAddr = try await contract.supportsInterface(funcHash: "3b3b57de")
+        let supportAddr = try await contract.supportsInterface(funcHash: contract.interfaces["addr"]!)
         XCTAssertTrue(supportAddr)
-        let supportText = try await contract.supportsInterface(funcHash: "59d1d43c")
+        let supportText = try await contract.supportsInterface(funcHash: contract.interfaces["text"]!)
         XCTAssertTrue(supportText)
-        let supportContentHash = try await contract.supportsInterface(funcHash: "bc1c58d1")
+        let supportContentHash = try await contract.supportsInterface(funcHash: contract.interfaces["contenthash"]!)
         XCTAssertTrue(supportContentHash)
     }
 

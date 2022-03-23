@@ -21,6 +21,7 @@ struct EthereumError: Error {
 protocol BaseContract {
     var address: Address { get }
     var client: JSONRPC { get }
+    var interfaces: [String: FuncHash] { get }
 }
 
 extension BaseContract {
