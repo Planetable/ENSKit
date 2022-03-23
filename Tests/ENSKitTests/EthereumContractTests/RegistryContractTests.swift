@@ -12,12 +12,12 @@ final class RegistryContractTests: XCTestCase {
     func testResolver() async throws {
         let client = try JSONRPC(url: "https://cloudflare-eth.com/")
         let contract = RegistryContract(client: client)
-        let main = ENSKit()
+        let main = try ENSKit()
 
         let vitalik = main.namehash("vitalik.eth")
         let result = try await contract.resolver(namehash: vitalik)
         if let ethResolver = result {
-            XCTAssertEqual(ethResolver, "0x4976fb03c32e5b8cfe2b6ccb31c09ba78ebaba41")
+            XCTAssertEqual(ethResolver, try! Address("0x4976fb03c32e5b8cfe2b6ccb31c09ba78ebaba41"))
         } else {
             XCTFail()
         }
@@ -26,7 +26,7 @@ final class RegistryContractTests: XCTestCase {
     func testResolverNoResult() async throws {
         let client = try JSONRPC(url: "https://cloudflare-eth.com/")
         let contract = RegistryContract(client: client)
-        let main = ENSKit()
+        let main = try ENSKit()
 
         let unsupported = main.namehash("unsupportedENS")
         let noResolver = try await contract.resolver(namehash: unsupported)

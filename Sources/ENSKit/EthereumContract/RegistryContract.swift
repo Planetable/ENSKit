@@ -1,6 +1,6 @@
 //
 //  EthereumContract.swift
-//  
+//
 //
 //  Created by Shu Lyu on 2022-03-15.
 //
@@ -14,7 +14,7 @@ struct RegistryContract: BaseContract {
     // Reference to [ENS Registry Interface](https://docs.ens.domains/contract-api-reference/ens)
     private let resolver: FuncHash = "0178b8bf" // `encodeEthFuncSignature("resolver(bytes32)")`
 
-    init(client: JSONRPC, address: Address = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e") {
+    init(client: JSONRPC, address: Address = try! Address("0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e")) {
         // default registry address from [ENS](https://docs.ens.domains/ens-deployments)
         self.client = client
         self.address = address
@@ -23,8 +23,9 @@ struct RegistryContract: BaseContract {
     func resolver(namehash: Data) async throws -> Address? {
         let data = "0x" + resolver + EthEncoder.bytes(namehash)
         let result = try await ethCall(data)
-        let address = "0x" + result.stringValue.suffix(40)
-        if address == NullAddress {
+        let s = result.stringValue
+        let (address, _) = EthDecoder.address(s)
+        if address == Address.Null {
             return nil
         }
         return address

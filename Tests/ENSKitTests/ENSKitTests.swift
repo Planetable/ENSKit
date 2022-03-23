@@ -10,7 +10,7 @@ import XCTest
 
 final class ENSKitTests: XCTestCase {
     func testNamehash() throws {
-        let resolver = ENSKit()
+        let resolver = try ENSKit()
         let empty = ""
         XCTAssertEqual(resolver.namehash(empty).toHexString(), "0000000000000000000000000000000000000000000000000000000000000000")
         let eth = "eth"

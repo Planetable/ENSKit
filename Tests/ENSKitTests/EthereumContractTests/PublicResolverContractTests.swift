@@ -13,7 +13,7 @@ final class PublicResolverContractTests: XCTestCase {
 
     func testSupportsInterface() async throws {
         let client = try JSONRPC(url: "https://cloudflare-eth.com/")
-        let contract = PublicResolverContract(client: client, address: "0x4976fb03c32e5b8cfe2b6ccb31c09ba78ebaba41")
+        let contract = PublicResolverContract(client: client, address: try! Address("0x4976fb03c32e5b8cfe2b6ccb31c09ba78ebaba41"))
 
         let supportGuaranteed = try await contract.supportsInterface(funcHash: "01ffc9a7")
         XCTAssertTrue(supportGuaranteed)
@@ -23,8 +23,8 @@ final class PublicResolverContractTests: XCTestCase {
 
     func testContentHashIPFS() async throws {
         let client = try JSONRPC(url: "https://cloudflare-eth.com/")
-        let contract = PublicResolverContract(client: client, address: "0x4976fb03c32e5b8cfe2b6ccb31c09ba78ebaba41")
-        let main = ENSKit()
+        let contract = PublicResolverContract(client: client, address: try! Address("0x4976fb03c32e5b8cfe2b6ccb31c09ba78ebaba41"))
+        let main = try ENSKit()
 
         let vitalik = main.namehash("vitalik.eth")
         let vitalikContentHash = try await contract.contenthash(namehash: vitalik)
@@ -37,8 +37,8 @@ final class PublicResolverContractTests: XCTestCase {
 
     func testContentHashIPNS() async throws {
         let client = try JSONRPC(url: "https://cloudflare-eth.com/")
-        let contract = PublicResolverContract(client: client, address: "0x4976fb03c32e5b8cfe2b6ccb31c09ba78ebaba41")
-        let main = ENSKit()
+        let contract = PublicResolverContract(client: client, address: try! Address("0x4976fb03c32e5b8cfe2b6ccb31c09ba78ebaba41"))
+        let main = try ENSKit()
 
         let uniswap = main.namehash("uniswap.eth")
         let uniswapContentHash = try await contract.contenthash(namehash: uniswap)

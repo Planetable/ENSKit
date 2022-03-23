@@ -10,27 +10,21 @@ import CryptoSwift
 import SwiftyJSON
 
 public struct ENSKit {
-    public var JSONRPCProviderURL: String
+    var client: JSONRPC
 
-    init(url: String = "https://cloudflare-eth.com/") {
-        JSONRPCProviderURL = url
+    init(url: String = "https://cloudflare-eth.com/") throws {
+        try client = JSONRPC(url: url)
     }
 
     public func resolve(name: String) async throws -> Data? {
-        let client = try JSONRPC(url: JSONRPCProviderURL)
         let contract = RegistryContract(client: client)
         let namehash = namehash(name)
-        let result = try await contract.resolver(namehash: namehash)
-        if let resolverAddress = result {
-            let resolver = PublicResolverContract(client: client, address: resolverAddress)
-            let contenthash = try await resolver.contenthash(namehash: namehash)
-            if contenthash.count != 0 {
-                return contenthash
-            }
-            return nil
-        } else {
+        guard let resolverAddress = try await contract.resolver(namehash: namehash) else {
             return nil
         }
+        let resolver = PublicResolverContract(client: client, address: resolverAddress)
+        let contenthash = try await resolver.contenthash(namehash: namehash)
+        return contenthash
     }
 
     func namehash(_ name: String) -> Data {
