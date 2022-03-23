@@ -31,7 +31,7 @@ struct PublicResolverContract: BaseContract {
     }
 
     func addr(namehash: Data) async throws -> Address? {
-        let data = "0x" + contenthash + EthEncoder.bytes(namehash)
+        let data = "0x" + addr + EthEncoder.bytes(namehash)
         let result = try await ethCall(data)
         let s = result.stringValue
         let (address, _) = EthDecoder.address(s)
