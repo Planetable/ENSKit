@@ -9,11 +9,10 @@ import XCTest
 @testable import ENSKit
 
 final class RegistryContractTests: XCTestCase {
-    func testResolver() async throws {
-        let client = try JSONRPC(url: "https://cloudflare-eth.com/")
-        let contract = RegistryContract(client: client)
-        let main = try ENSKit()
+    let main = try! ENSKit()
 
+    func testResolver() async throws {
+        let contract = RegistryContract(client: main.client)
         let vitalik = main.namehash("vitalik.eth")
         let result = try await contract.resolver(namehash: vitalik)
         if let ethResolver = result {
@@ -24,12 +23,9 @@ final class RegistryContractTests: XCTestCase {
     }
 
     func testResolverNoResult() async throws {
-        let client = try JSONRPC(url: "https://cloudflare-eth.com/")
-        let contract = RegistryContract(client: client)
-        let main = try ENSKit()
-
+        let contract = RegistryContract(client: main.client)
         let unsupported = main.namehash("unsupportedENS")
         let noResolver = try await contract.resolver(namehash: unsupported)
-        XCTAssertEqual(noResolver, nil)
+        XCTAssertNil(noResolver)
     }
 }
