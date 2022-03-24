@@ -14,21 +14,11 @@ public struct Address: Equatable {
     init(_ hex: String) throws {
         let hexMatcher = try! NSRegularExpression(pattern: #"^(0[xX])?([0-9a-fA-F]{40})$"#)
         let hexRange = NSRange(hex.startIndex..<hex.endIndex, in: hex)
-        var hexResult: String? = nil
-        hexMatcher.enumerateMatches(in: hex, options: [], range: hexRange) { (match, _, stop) in
-            guard let match = match else { return }
-
-            if match.numberOfRanges == 3 {
-                let resultRange = Range(match.range(at: 2), in: hex)!
-                hexResult = String(hex[resultRange]).lowercased()
-                stop.pointee = true
-            }
-        }
-        if let hex = hexResult {
-            self.hex = hex
-        } else {
+        guard let match = hexMatcher.firstMatch(in: hex, range: hexRange), match.numberOfRanges == 3 else {
             throw AddressError.NotHexString
         }
+        let resultRange = Range(match.range(at: 2), in: hex)!
+        self.hex = String(hex[resultRange]).lowercased()
     }
 
     func toHexString(options: AddressOptions = [.prefix0x]) -> String {
