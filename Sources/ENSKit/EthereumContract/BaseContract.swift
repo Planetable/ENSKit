@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftyJSON
+import UInt256
 
 typealias FuncHash = String
 
@@ -58,6 +59,10 @@ struct EthEncoder {
         return String(repeating: prefixChar, count: count) + suffix
     }
 
+    static func uint256(_ number: UInt256) -> String {
+        return number.toHexString()
+    }
+
     static func bytes(_ bytes: Data) -> String {
         let padding = 32 - bytes.count
         return bytes.toHexString() + String(repeating: "0", count: padding * 2)
@@ -97,6 +102,11 @@ struct EthDecoder {
     static func int(_ result: String, offset: String.Index? = nil) -> (Int, String.Index) {
         let (s, end) = extractString(result, start: offset ?? index0x(result))
         return (Int(s, radix: 16)!, end)
+    }
+
+    static func uint256(_ result: String, offset: String.Index? = nil) -> (UInt256, String.Index) {
+        let (s, end) = extractString(result, start: offset ?? index0x(result))
+        return (UInt256(s, radix: 16)!, end)
     }
 
     static func bytes(_ result: String, offset: String.Index? = nil) -> (Data, String.Index) {
