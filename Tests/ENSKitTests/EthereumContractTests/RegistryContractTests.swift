@@ -12,7 +12,7 @@ final class RegistryContractTests: XCTestCase {
     let main = try! ENSKit()
 
     func testResolver() async throws {
-        let contract = RegistryContract(client: main.client)
+        let contract = RegistryContract(client: main.jsonrpcClient)
         let vitalik = main.namehash("vitalik.eth")
         let result = try await contract.resolver(namehash: vitalik)
         if let ethResolver = result {
@@ -23,7 +23,7 @@ final class RegistryContractTests: XCTestCase {
     }
 
     func testResolverNoResult() async throws {
-        let contract = RegistryContract(client: main.client)
+        let contract = RegistryContract(client: main.jsonrpcClient)
         let unsupported = main.namehash("unsupportedENS")
         let noResolver = try await contract.resolver(namehash: unsupported)
         XCTAssertNil(noResolver)

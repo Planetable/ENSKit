@@ -16,7 +16,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", .upToNextMajor(from: "1.4.3")),
         .package(url: "https://github.com/SwiftyJSON/SwiftyJSON.git", .upToNextMajor(from: "5.0.1")),
-        .package(url: "https://github.com/hyugit/UInt256.git", .upToNextMajor(from: "0.2.2")),
+        .package(url: "https://github.com/stdc105/UInt256.git", .upToNextMajor(from: "0.3.0")),
     ],
     targets: [.target(
             name: "ENSKit",

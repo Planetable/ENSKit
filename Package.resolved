@@ -21,10 +21,10 @@
     {
       "identity" : "uint256",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/hyugit/UInt256.git",
+      "location" : "https://github.com/stdc105/UInt256.git",
       "state" : {
-        "revision" : "1a499a1bf08afd10b9fcd0fd6d90b6dd9196be50",
-        "version" : "0.2.2"
+        "revision" : "39268c507a732d0583ae813a7f957a4b0bd74d8a",
+        "version" : "0.3.0"
       }
     }
   ],

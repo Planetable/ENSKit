@@ -5,26 +5,81 @@
 //  Created by Shu Lyu on 2022-03-15.
 //
 
-import Foundation
 import CryptoSwift
+import Foundation
 import SwiftyJSON
+import UInt256
 
 public struct ENSKit {
-    var client: JSONRPC
+    var jsonrpcClient: JSONRPC
+    var nftPlatform: NFTPlatform
+    var ipfsClient: IPFSClient
 
     init(url: String = "https://cloudflare-eth.com/") throws {
-        try client = JSONRPC(url: url)
+        try jsonrpcClient = JSONRPC(url: url)
+        nftPlatform = OpenSea()
+        ipfsClient = IPFSGatewayClient(baseURL: "https://cloudflare-ipfs.com")
     }
 
     public func resolve(name: String) async throws -> Data? {
-        let contract = RegistryContract(client: client)
+        let contract = RegistryContract(client: jsonrpcClient)
         let namehash = namehash(name)
         guard let resolverAddress = try await contract.resolver(namehash: namehash) else {
             return nil
         }
-        let resolver = PublicResolverContract(client: client, address: resolverAddress)
+        let resolver = PublicResolverContract(client: jsonrpcClient, address: resolverAddress)
         let contenthash = try await resolver.contenthash(namehash: namehash)
         return contenthash
+    }
+
+    public func avatar(name: String) async throws -> URL? {
+        if let avatar = try await getAvatar(name: name) {
+            return try await getAvatarImageURL(avatar: avatar)
+        }
+        return nil
+    }
+
+    public func getAvatar(name: String) async throws -> ENSAvatar? {
+        let contract = RegistryContract(client: jsonrpcClient)
+        let namehash = namehash(name)
+        guard let resolverAddress = try await contract.resolver(namehash: namehash) else {
+            return nil
+        }
+        let resolver = PublicResolverContract(client: jsonrpcClient, address: resolverAddress)
+        let result = try await resolver.text(namehash: namehash, key: "avatar")
+        if let text = result {
+            if text.range(of: "https://", options: [.caseInsensitive, .anchored]) != nil {
+                return .HTTPS(URL(string: text)!)
+            }
+            if isIPFSURL(text) {
+                return .IPFS(URL(string: text)!)
+            }
+            if text.range(of: "data:", options: [.caseInsensitive, .anchored]) != nil {
+                return .Data(URL(string: text)!)
+            }
+            if let (tokenType, tokenAddress, tokenId) = matchERCTokens(text) {
+                guard let domainOwner = try await resolver.addr(namehash: namehash) else {
+                    return nil
+                }
+                if tokenType == "erc721" {
+                    let tokenContract = ERC721(client: jsonrpcClient, address: tokenAddress)
+                    guard let tokenOwner = try await tokenContract.ownerOf(tokenId: tokenId), tokenOwner == domainOwner else {
+                        return nil
+                    }
+                    return .ERC721(tokenAddress, tokenId)
+                }
+                if tokenType == "erc1155" {
+                    let tokenContract = ERC1155(client: jsonrpcClient, address: tokenAddress)
+                    let balance = try await tokenContract.balanceOf(owner: domainOwner, tokenId: tokenId)
+                    if balance == 0 {
+                        return nil
+                    }
+                    return .ERC1155(tokenAddress, tokenId)
+                }
+            }
+            return .Unknown(text)
+        }
+        return nil
     }
 
     func namehash(_ name: String) -> Data {
@@ -44,4 +99,101 @@ public struct ENSKit {
 
         return label.lowercased()
     }
+
+    private func matchERCTokens(_ result: String) -> (String, Address, UInt256)? {
+        // ERC721 naming convention: [CAIP-22](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-22.md)
+        // ERC1155 naming convention: [CAIP-29](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-29.md)
+
+        let tokensMatcher = try! NSRegularExpression(pattern: #"^eip155:[0-9]+/(erc[0-9]+):(0x[0-9a-f]{40})/([0-9]+)$"#, options: [.caseInsensitive])
+        let resultRange = NSRange(result.startIndex..<result.endIndex, in: result)
+        guard let match = tokensMatcher.firstMatch(in: result, range: resultRange), match.numberOfRanges == 4 else {
+            return nil
+        }
+
+        let tokenTypeRange = Range(match.range(at: 1), in: result)!
+        let tokenAddressRange = Range(match.range(at: 2), in: result)!
+        let tokenIdRange = Range(match.range(at: 3), in: result)!
+
+        let tokenType = String(result[tokenTypeRange]).lowercased()
+        let tokenAddress = try! Address(String(result[tokenAddressRange]))
+        let tokenId = UInt256(result[tokenIdRange])!
+
+        return (tokenType, tokenAddress, tokenId)
+    }
+
+    private func isIPFSURL(_ url: String) -> Bool {
+        return url.range(of: "ip[fn]s://", options: [.caseInsensitive, .anchored, .regularExpression]) != nil
+    }
+
+    private func isIPFSURL(_ url: URL) -> Bool {
+        let scheme = url.scheme?.lowercased()
+        return scheme == "ipfs" || scheme == "ipns"
+    }
+
+    func getAvatarImageURL(avatar: ENSAvatar) async throws -> URL? {
+        switch avatar {
+        case .Data(let url), .HTTPS(let url), .IPFS(let url):
+            return url
+        case .ERC721(let address, let tokenId):
+            let contract = ERC721(client: jsonrpcClient, address: address)
+            do {
+                if let metadataURL = try await contract.tokenURI(tokenId: tokenId) {
+                    return try await getTokenImageURL(metadataURL)
+                }
+            } catch is EthereumError {
+                // Ignore, the contract may not support ERC721Metadata
+                // Some contract may implement ERC721Metadata, but `supportsInterface(0x5b5e139f)` might still return false
+                // We have to call `tokenURI(tokenId)` and see if the metadata URL exists
+            }
+            // No information in contract, let's try NFT platform API
+            return try await nftPlatform.getNFTImageURL(address: address, tokenId: tokenId)
+        case .ERC1155(let address, let tokenId):
+            let contract = ERC1155(client: jsonrpcClient, address: address)
+            do {
+                if let metadataURL = try await contract.uri(tokenId: tokenId) {
+                    return try await getTokenImageURL(metadataURL)
+                }
+            } catch is EthereumError {
+                // Ignore, the contract may not support ERC1155Metadata_URI
+                // Some contract may implement ERC1155Metadata_URI, but `supportsInterface(0x0e89341c)` might still return false
+                // We have to call `uri(tokenId)` and see if the metadata URL exists
+            }
+            // No information in contract, let's try NFT platform API
+            return try await nftPlatform.getNFTImageURL(address: address, tokenId: tokenId)
+        case .Unknown(_):
+            return nil
+        }
+    }
+
+    func getTokenImageURL(_ metadataURL: URL) async throws -> URL? {
+        let data: Data
+        if isIPFSURL(metadataURL) {
+            if let response = try await ipfsClient.getIPFSURL(url: metadataURL) {
+                data = response
+            } else {
+                return nil
+            }
+        } else {
+            let request = URLRequest(url: metadataURL)
+            let response: URLResponse
+            (data, response) = try await URLSession.shared.data(for: request)
+            if !(response as! HTTPURLResponse).ok {
+                return nil
+            }
+        }
+        let metadata = try JSON(data: data)
+        if let imageURL = metadata["image"].string {
+            return URL(string: imageURL)
+        }
+        return nil
+    }
+}
+
+public enum ENSAvatar {
+    case HTTPS(URL)
+    case IPFS(URL)
+    case Data(URL)
+    case ERC721(Address, UInt256)
+    case ERC1155(Address, UInt256)
+    case Unknown(String)
 }
