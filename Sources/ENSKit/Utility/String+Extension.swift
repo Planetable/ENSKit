@@ -19,4 +19,9 @@ extension String {
         let bytes = [UInt8](hex: self)
         return Data(bytes)
     }
+
+    @inlinable
+    public func encodeBase64() -> String {
+        return self.data(using: .utf8)!.base64EncodedString()
+    }
 }

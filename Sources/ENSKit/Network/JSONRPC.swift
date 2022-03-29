@@ -1,5 +1,5 @@
 //
-//  JSONRPCClient.swift
+//  JSONRPC.swift
 //
 //
 //  Created by Shu Lyu on 2022-03-16.
@@ -9,7 +9,7 @@ import Foundation
 import SwiftyJSON
 
 enum JSONRPCError: Error {
-    case InvalidURL
+    case HTTPError(status: Int, data: Data)
     case InvalidJSONRPCParams
     case InvalidJSONRPCResponse
 }
@@ -19,17 +19,12 @@ enum JSONRPCResponse {
     case error(JSON)
 }
 
-struct JSONRPC {
-    var url: URL
+protocol JSONRPC {
+    func request(method: String, params: JSON) async throws -> JSONRPCResponse
+}
 
-    init(url: String) throws {
-        guard let url = URL(string: url) else {
-            throw JSONRPCError.InvalidURL
-        }
-        self.url = url
-    }
-
-    func request(method: String, params: JSON) async throws -> JSONRPCResponse {
+extension JSONRPC {
+    func buildRequestBody(_ method: String, _ params: JSON) throws -> JSON {
         guard params.string == nil, params.number == nil, params.bool == nil else {
             throw JSONRPCError.InvalidJSONRPCParams
         }
@@ -42,15 +37,10 @@ struct JSONRPC {
         if params != JSON.null {
             requestBody["params"] = params
         }
-        let payload = try requestBody.rawData()
+        return requestBody
+    }
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "content-type")
-        request.setValue("application/json", forHTTPHeaderField: "accept")
-        request.httpBody = payload
-
-        let (data, _) = try await URLSession.shared.data(for: request)
+    func getResponseResult(_ data: Data) throws -> JSONRPCResponse {
         let responseBody = try JSON(data: data)
 
         guard responseBody["jsonrpc"] == "2.0" else {
@@ -65,4 +55,3 @@ struct JSONRPC {
         throw JSONRPCError.InvalidJSONRPCResponse
     }
 }
-
