@@ -11,11 +11,11 @@ import UInt256
 import Base58Swift
 
 public struct ENSKit {
-    var jsonrpcClient: JSONRPC
-    var nftPlatform: NFTPlatform
-    var ipfsClient: IPFSClient
+    public var jsonrpcClient: JSONRPC
+    public var nftPlatform: NFTPlatform
+    public var ipfsClient: IPFSClient
 
-    init(jsonrpcClient: JSONRPC = CloudflareEthereumGateway(),
+    public init(jsonrpcClient: JSONRPC = CloudflareEthereumGateway(),
          nftPlatform: NFTPlatform = OpenSea(),
          ipfsClient: IPFSClient = IPFSGatewayClient(baseURL: "https://cloudflare-ipfs.com")) {
         self.jsonrpcClient = jsonrpcClient
@@ -121,7 +121,7 @@ public struct ENSKit {
         return scheme == "ipfs" || scheme == "ipns"
     }
 
-    func getContentHashURL(_ contenthash: Data) -> URL? {
+    public func getContentHashURL(_ contenthash: Data) -> URL? {
         // supports IPFS, IPNS, and Swarm
         // ContentHash specification: [ENSIP-7](https://docs.ens.domains/ens-improvement-proposals/ensip-7-contenthash-field)
         // ContentHash is encoded with [multicodec](https://github.com/multiformats/multicodec/blob/master/table.csv)
@@ -168,7 +168,7 @@ public struct ENSKit {
         return nil
     }
 
-    func getAvatarImageURL(avatar: ENSAvatar) async throws -> URL? {
+    public func getAvatarImageURL(avatar: ENSAvatar) async throws -> URL? {
         switch avatar {
         case .Data(let url), .HTTPS(let url), .IPFS(let url):
             return url

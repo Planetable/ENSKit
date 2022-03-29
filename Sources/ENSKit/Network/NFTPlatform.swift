@@ -9,19 +9,19 @@ import Foundation
 import SwiftyJSON
 import UInt256
 
-protocol NFTPlatform {
+public protocol NFTPlatform {
     func getNFTImageURL(address: Address, tokenId: UInt256) async throws -> URL?
 }
 
-struct OpenSea: NFTPlatform {
+public struct OpenSea: NFTPlatform {
     let baseURL = "https://api.opensea.io/api/v1"
     let apiKey: String?
 
-    init(apiKey: String? = nil) {
+    public init(apiKey: String? = nil) {
         self.apiKey = apiKey
     }
 
-    func getNFTImageURL(address: Address, tokenId: UInt256) async throws -> URL? {
+    public func getNFTImageURL(address: Address, tokenId: UInt256) async throws -> URL? {
         let url = URL(string: "\(baseURL)/\(address.toHexString())/\(tokenId.toDecimalString())/")!
         var request = URLRequest(url: url)
         if let key = apiKey {

@@ -8,22 +8,22 @@
 import Foundation
 import SwiftyJSON
 
-enum JSONRPCError: Error {
+public enum JSONRPCError: Error {
     case HTTPError(status: Int, data: Data)
     case InvalidJSONRPCParams
     case InvalidJSONRPCResponse
 }
 
-enum JSONRPCResponse {
+public enum JSONRPCResponse {
     case result(JSON)
     case error(JSON)
 }
 
-protocol JSONRPC {
+public protocol JSONRPC {
     func request(method: String, params: JSON) async throws -> JSONRPCResponse
 }
 
-extension JSONRPC {
+public extension JSONRPC {
     func buildRequestBody(_ method: String, _ params: JSON) throws -> JSON {
         guard params.string == nil, params.number == nil, params.bool == nil else {
             throw JSONRPCError.InvalidJSONRPCParams

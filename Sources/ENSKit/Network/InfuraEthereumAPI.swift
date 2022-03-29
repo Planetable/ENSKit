@@ -8,30 +8,30 @@
 import Foundation
 import SwiftyJSON
 
-struct InfuraEthereumAPI: JSONRPC {
+public struct InfuraEthereumAPI: JSONRPC {
     let url: URL
     let projectSecret: String?
     let jwt: String?
 
-    init(url: URL) {
+    public init(url: URL) {
         self.url = url
         self.projectSecret = nil
         self.jwt = nil
     }
 
-    init(url: URL, projectSecret: String) {
+    public init(url: URL, projectSecret: String) {
         self.url = url
         self.projectSecret = projectSecret
         self.jwt = nil
     }
 
-    init(url: URL, jwt: String) {
+    public init(url: URL, jwt: String) {
         self.url = url
         self.jwt = jwt
         self.projectSecret = nil
     }
 
-    func request(method: String, params: JSON) async throws -> JSONRPCResponse {
+    public func request(method: String, params: JSON) async throws -> JSONRPCResponse {
         let requestBody = try buildRequestBody(method, params)
 
         let payload = try requestBody.rawData()

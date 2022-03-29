@@ -9,14 +9,18 @@ import Foundation
 import SwiftyJSON
 import UInt256
 
-protocol IPFSClient {
+public protocol IPFSClient {
     func getIPFSURL(url: URL) async throws -> Data?
 }
 
-struct IPFSGatewayClient: IPFSClient {
-    var baseURL: String
+public struct IPFSGatewayClient: IPFSClient {
+    let baseURL: String
 
-    func getIPFSURL(url: URL) async throws -> Data? {
+    public init(baseURL: String) {
+        self.baseURL = baseURL
+    }
+
+    public func getIPFSURL(url: URL) async throws -> Data? {
         let str = url.absoluteString
         let suffix: String
         let prefix: String

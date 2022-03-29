@@ -8,10 +8,12 @@
 import Foundation
 import SwiftyJSON
 
-struct CloudflareEthereumGateway: JSONRPC {
+public struct CloudflareEthereumGateway: JSONRPC {
     let url = URL(string: "https://cloudflare-eth.com/")!
 
-    func request(method: String, params: JSON) async throws -> JSONRPCResponse {
+    public init() {}
+
+    public func request(method: String, params: JSON) async throws -> JSONRPCResponse {
         let requestBody = try buildRequestBody(method, params)
 
         let payload = try requestBody.rawData()
