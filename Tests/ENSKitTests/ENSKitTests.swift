@@ -21,8 +21,17 @@ final class ENSKitTests: XCTestCase {
     }
 
     func testAvatar() async throws {
-        let vitalik = "vitalik.eth"
-        let avatar = try await main.avatar(name: vitalik)
+        let avatar = try await main.avatar(name: "vitalik.eth")
         XCTAssertEqual(avatar, URL(string: "ipfs://ipfs/QmSP4nq9fnN9dAiCj42ug9Wa79rqmQerZXZch82VqpiH7U/image.gif")!)
+    }
+
+    func testResolveIPFS() async throws {
+        let vitalik = try await main.resolve(name: "vitalik.eth")
+        XCTAssertEqual(vitalik, URL(string: "ipfs://QmQs98YJ6ynaeEQQ2t6j7H36hQyBNRVV1URptK8EjywKqi"))
+    }
+
+    func testResolveIPNS() async throws {
+        let uniswap = try await main.resolve(name: "uniswap.eth")
+        XCTAssertEqual(uniswap, URL(string: "ipns://app.uniswap.org"))
     }
 }

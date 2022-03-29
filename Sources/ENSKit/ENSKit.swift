@@ -9,6 +9,7 @@ import CryptoSwift
 import Foundation
 import SwiftyJSON
 import UInt256
+import Base58Swift
 
 public struct ENSKit {
     var jsonrpcClient: JSONRPC
@@ -21,15 +22,11 @@ public struct ENSKit {
         ipfsClient = IPFSGatewayClient(baseURL: "https://cloudflare-ipfs.com")
     }
 
-    public func resolve(name: String) async throws -> Data? {
-        let contract = RegistryContract(client: jsonrpcClient)
-        let namehash = namehash(name)
-        guard let resolverAddress = try await contract.resolver(namehash: namehash) else {
-            return nil
+    public func resolve(name: String) async throws -> URL? {
+        if let contenthash = try await getContentHash(name: name) {
+            return getContentHashURL(contenthash)
         }
-        let resolver = PublicResolverContract(client: jsonrpcClient, address: resolverAddress)
-        let contenthash = try await resolver.contenthash(namehash: namehash)
-        return contenthash
+        return nil
     }
 
     public func avatar(name: String) async throws -> URL? {
@@ -82,6 +79,17 @@ public struct ENSKit {
         return nil
     }
 
+    public func getContentHash(name: String) async throws -> Data? {
+        let contract = RegistryContract(client: jsonrpcClient)
+        let namehash = namehash(name)
+        guard let resolverAddress = try await contract.resolver(namehash: namehash) else {
+            return nil
+        }
+        let resolver = PublicResolverContract(client: jsonrpcClient, address: resolverAddress)
+        let contenthash = try await resolver.contenthash(namehash: namehash)
+        return contenthash
+    }
+
     func namehash(_ name: String) -> Data {
         var result = [UInt8](repeating: 0, count: 32)
         let labels = name.split(separator: ".")
@@ -128,6 +136,53 @@ public struct ENSKit {
     private func isIPFSURL(_ url: URL) -> Bool {
         let scheme = url.scheme?.lowercased()
         return scheme == "ipfs" || scheme == "ipns"
+    }
+
+    func getContentHashURL(_ contenthash: Data) -> URL? {
+        // supports IPFS, IPNS, and Swarm
+        // ContentHash specification: [ENSIP-7](https://docs.ens.domains/ens-improvement-proposals/ensip-7-contenthash-field)
+        // ContentHash is encoded with [multicodec](https://github.com/multiformats/multicodec/blob/master/table.csv)
+        // multicodec identifiers are encoded with [unsigned-varint](https://github.com/multiformats/unsigned-varint)
+        // Content ID is encoded with [cid](https://github.com/multiformats/cid)
+        // Content is encoded with [multihash](https://github.com/multiformats/multihash)
+
+        let bytes = contenthash.bytes
+        // 0xe301 = VarUInt(0xe3): ipfs-ns, 0x01: cidv1, 0x70: dag-pb
+        if bytes.starts(with: [227, 1, 1, 112]) {
+            guard let (_, lengthIndex) = VarUInt.decodeBytes(bytes, offset: 4),
+                  let (length, contentIndex) = VarUInt.decodeBytes(bytes, offset: lengthIndex),
+                  contentIndex + length == bytes.count else {
+                return nil
+            }
+            let content = [UInt8](bytes.suffix(from: 4))
+            return URL(string: "ipfs://" + Base58.base58Encode(content))
+        }
+        // 0xe401 = VarUInt(0xe4): swarm-ns, 0x01: cidv1, 0xfa01 = VarUInt(0xfa): swarm-manifest, 0x1b: keccak256, 0x20: 20 bytes
+        if bytes.starts(with: [228, 1, 1, 250, 1, 27, 32]) && bytes.count == 39 {
+            let content = [UInt8](bytes.suffix(from: 7))
+            return URL(string: "bzz://" + content.toHexString())
+        }
+        // 0xe501 = VarUInt(0xe5): ipns-ns, 0x01: cidv1, 0x70: dag-pb
+        if bytes.starts(with: [229, 1, 1, 112]) {
+            guard let (hashType, lengthIndex) = VarUInt.decodeBytes(bytes, offset: 4),
+                  let (length, contentIndex) = VarUInt.decodeBytes(bytes, offset: lengthIndex),
+                  contentIndex + length == bytes.count else {
+                return nil
+            }
+            if hashType == 0 {
+                // 0x00: identity (no process on content, parse as UTF8)
+                let content = [UInt8](bytes.suffix(from: contentIndex))
+                guard let contentString = String(data: Data(content), encoding: .utf8) else {
+                    return nil
+                }
+                return URL(string: "ipns://" + contentString)
+            } else {
+                // probably a hash, such as 0x12: sha2-256
+                let content = [UInt8](bytes.suffix(from: 4))
+                return URL(string: "ipns://" + Base58.base58Encode(content))
+            }
+        }
+        return nil
     }
 
     func getAvatarImageURL(avatar: ENSAvatar) async throws -> URL? {
