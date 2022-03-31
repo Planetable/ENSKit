@@ -11,9 +11,13 @@ import XCTest
 final class ENSKitTests: XCTestCase {
     let main = ENSKit()
 
-    func testAvatar() async throws {
-        let avatar = try await main.avatar(name: "vitalik.eth")
-        XCTAssertEqual(avatar, URL(string: "ipfs://ipfs/QmSP4nq9fnN9dAiCj42ug9Wa79rqmQerZXZch82VqpiH7U/image.gif")!)
+    func testAvatarURL() async throws {
+        if let avatar = try await main.getAvatar(name: "vitalik.eth") {
+            let avatarURL = try await main.getAvatarImageURL(avatar: avatar)
+            XCTAssertEqual(avatarURL, URL(string: "ipfs://ipfs/QmSP4nq9fnN9dAiCj42ug9Wa79rqmQerZXZch82VqpiH7U/image.gif")!)
+        } else {
+            XCTFail()
+        }
     }
 
     func testResolveIPFS() async throws {

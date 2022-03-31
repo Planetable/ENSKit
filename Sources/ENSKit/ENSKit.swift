@@ -30,9 +30,11 @@ public struct ENSKit {
         return nil
     }
 
-    public func avatar(name: String) async throws -> URL? {
+    public func avatar(name: String) async throws -> Data? {
         if let avatar = try await getAvatar(name: name) {
-            return try await getAvatarImageURL(avatar: avatar)
+            if let url = try await getAvatarImageURL(avatar: avatar) {
+                return try await getAvatarImage(imageURL: url)
+            }
         }
         return nil
     }
@@ -46,16 +48,16 @@ public struct ENSKit {
         let resolver = PublicResolverContract(client: jsonrpcClient, address: resolverAddress)
         let result = try await resolver.text(namehash: namehash, key: "avatar")
         if let text = result {
-            if text.range(of: "https://", options: [.caseInsensitive, .anchored]) != nil {
+            if text.isHTTPSURL() {
                 return .HTTPS(URL(string: text)!)
             }
-            if isIPFSURL(text) {
+            if text.isIPFSURL() {
                 return .IPFS(URL(string: text)!)
             }
-            if text.range(of: "data:", options: [.caseInsensitive, .anchored]) != nil {
+            if text.isDataURL() {
                 return .Data(URL(string: text)!)
             }
-            if let (tokenType, tokenAddress, tokenId) = matchERCTokens(text) {
+            if let (tokenType, tokenAddress, tokenId) = text.matchERCTokens() {
                 guard let domainOwner = try await resolver.addr(namehash: namehash) else {
                     return nil
                 }
@@ -89,31 +91,6 @@ public struct ENSKit {
         let resolver = PublicResolverContract(client: jsonrpcClient, address: resolverAddress)
         let contenthash = try await resolver.contenthash(namehash: namehash)
         return contenthash
-    }
-
-    private func matchERCTokens(_ result: String) -> (String, Address, UInt256)? {
-        // ERC721 naming convention: [CAIP-22](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-22.md)
-        // ERC1155 naming convention: [CAIP-29](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-29.md)
-
-        let tokensMatcher = try! NSRegularExpression(pattern: #"^eip155:[0-9]+/(erc[0-9]+):(0x[0-9a-f]{40})/([0-9]+)$"#, options: [.caseInsensitive])
-        let resultRange = NSRange(result.startIndex..<result.endIndex, in: result)
-        guard let match = tokensMatcher.firstMatch(in: result, range: resultRange), match.numberOfRanges == 4 else {
-            return nil
-        }
-
-        let tokenTypeRange = Range(match.range(at: 1), in: result)!
-        let tokenAddressRange = Range(match.range(at: 2), in: result)!
-        let tokenIdRange = Range(match.range(at: 3), in: result)!
-
-        let tokenType = String(result[tokenTypeRange]).lowercased()
-        let tokenAddress = try! Address(String(result[tokenAddressRange]))
-        let tokenId = UInt256(result[tokenIdRange])!
-
-        return (tokenType, tokenAddress, tokenId)
-    }
-
-    private func isIPFSURL(_ url: String) -> Bool {
-        return url.range(of: "ip[fn]s://", options: [.caseInsensitive, .anchored, .regularExpression]) != nil
     }
 
     private func isIPFSURL(_ url: URL) -> Bool {
@@ -203,6 +180,19 @@ public struct ENSKit {
         }
     }
 
+    public func getAvatarImage(imageURL: URL) async throws -> Data? {
+        if isIPFSURL(imageURL) {
+            return try await ipfsClient.getIPFSURL(url: imageURL)
+        }
+        let request = URLRequest(url: imageURL)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        // `data:` URI is officially supported by ENS spec
+        if let httpResponse = (response as? HTTPURLResponse), !httpResponse.ok {
+            return nil
+        }
+        return data
+    }
+
     func getTokenImageURL(_ metadataURL: URL) async throws -> URL? {
         let data: Data
         if isIPFSURL(metadataURL) {
@@ -215,7 +205,7 @@ public struct ENSKit {
             let request = URLRequest(url: metadataURL)
             let response: URLResponse
             (data, response) = try await URLSession.shared.data(for: request)
-            if !(response as! HTTPURLResponse).ok {
+            if let httpResponse = (response as? HTTPURLResponse), !httpResponse.ok {
                 return nil
             }
         }
