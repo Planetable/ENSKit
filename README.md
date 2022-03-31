@@ -29,7 +29,7 @@ let vitalik = "vitalik.eth"
 let vitalikURL = try await enskit.resolve(name: vitalik)
 ```
 
-Get domain avatar URL:
+Get domain avatar as `Data`:
 
 ```swift
 // in async function
@@ -37,6 +37,15 @@ let vitalik = "vitalik.eth"
 let vitalikAvatar = try await enskit.avatar(name: vitalik)
 ```
 
+Get domain avatar URL:
+```swift
+// in async function
+let vitalik = "vitalik.eth"
+if let avatar = try await enskit.getAvatar(name: vitalik) {
+    let url = try await enskit.getAvatarImageURL(avatar: avatar)
+}
+```
+
 ## License
 
-MIT (See [LICENSE](/LICENSE))
+[MIT](/LICENSE)
