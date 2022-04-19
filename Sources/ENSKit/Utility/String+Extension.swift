@@ -23,21 +23,21 @@ public extension String {
 
     @inlinable
     func encodeBase64() -> String {
-        return self.data(using: .utf8)!.base64EncodedString()
+        data(using: .utf8)!.base64EncodedString()
     }
 }
 
 extension String {
     func isHTTPSURL() -> Bool {
-        return self.range(of: "https://", options: [.caseInsensitive, .anchored]) != nil
+        self.range(of: "https://", options: [.caseInsensitive, .anchored]) != nil
     }
 
     func isIPFSURL() -> Bool {
-        return self.range(of: "ip[fn]s://", options: [.caseInsensitive, .anchored, .regularExpression]) != nil
+        self.range(of: "ip[fn]s://", options: [.caseInsensitive, .anchored, .regularExpression]) != nil
     }
 
     func isDataURL() -> Bool {
-        return self.range(of: "data:", options: [.caseInsensitive, .anchored]) != nil
+        self.range(of: "data:", options: [.caseInsensitive, .anchored]) != nil
     }
 
     func matchERCTokens() -> (String, Address, UInt256)? {
@@ -45,7 +45,7 @@ extension String {
         // ERC1155 naming convention: [CAIP-29](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-29.md)
 
         let tokensMatcher = try! NSRegularExpression(pattern: #"^eip155:[0-9]+/(erc[0-9]+):(0x[0-9a-f]{40})/([0-9]+)$"#, options: [.caseInsensitive])
-        let range = NSRange(self.startIndex..<self.endIndex, in: self)
+        let range = NSRange(startIndex..<endIndex, in: self)
         guard let match = tokensMatcher.firstMatch(in: self, range: range), match.numberOfRanges == 4 else {
             return nil
         }

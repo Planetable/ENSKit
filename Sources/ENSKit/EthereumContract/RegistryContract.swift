@@ -26,10 +26,10 @@ struct RegistryContract: BaseContract {
         let data = "0x" + interfaces["resolver"]! + EthEncoder.bytes(namehash)
         let result = try await ethCall(data)
         let s = result.stringValue
-        let (address, _) = EthDecoder.address(s)
-        if address == Address.Null {
-            return nil
+        if let (address, _) = EthDecoder.address(s),
+           address != Address.Null {
+            return address
         }
-        return address
+        return nil
     }
 }

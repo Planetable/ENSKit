@@ -11,13 +11,15 @@ import UInt256
 
 typealias FuncHash = String
 
-struct EthereumError: Error {
+public struct EthereumError: Error {
     let error: JSON
 
     init(_ error: JSON) {
         self.error = error
     }
 }
+
+public struct ContractError: Error {}
 
 protocol BaseContract {
     var address: Address { get }
@@ -28,7 +30,7 @@ protocol BaseContract {
 extension BaseContract {
     func ethCall(_ data: String) async throws -> JSON {
         let params: JSON = [
-            ["to": self.address.toHexString(), "data": data],
+            ["to": address.toHexString(), "data": data],
             "latest"
         ]
         let response = try await client.request(method: "eth_call", params: params)
@@ -43,7 +45,7 @@ extension BaseContract {
 
 struct EthEncoder {
     static func funcSignature(_ signature: String) -> FuncHash {
-        return String(signature.keccak256().prefix(8))
+        String(signature.keccak256().prefix(8))
     }
 
     static func bool(_ bool: Bool) -> String {
@@ -60,7 +62,7 @@ struct EthEncoder {
     }
 
     static func uint256(_ number: UInt256) -> String {
-        return number.toHexString()
+        number.toHexString()
     }
 
     static func bytes(_ bytes: Data) -> String {
@@ -69,7 +71,7 @@ struct EthEncoder {
     }
 
     static func address(_ address: Address) -> String {
-        return String(repeating: "0", count: 24) + address.toHexString(options: [])
+        String(repeating: "0", count: 24) + address.toHexString(options: [])
     }
 
     static func dynamicBytes(_ bytes: Data) -> String {
@@ -80,56 +82,73 @@ struct EthEncoder {
     }
 
     static func string(_ string: String) -> String {
-        return EthEncoder.dynamicBytes(string.data(using: .utf8)!)
+        EthEncoder.dynamicBytes(string.data(using: .utf8)!)
     }
 }
 
 struct EthDecoder {
     static func index0x(_ s: String) -> String.Index {
-        return s.index(s.startIndex, offsetBy: 2)
+        s.index(s.startIndex, offsetBy: 2)
     }
 
-    static func extractString(_ s: String, start: String.Index) -> (String, String.Index) {
-        let end = s.index(start, offsetBy: 64)
-        return (String(s[start..<end]), end)
+    static func extractHexFragment(_ s: String, start: String.Index) -> (String, String.Index)? {
+        if let end = s.index(start, offsetBy: 64, limitedBy: s.endIndex) {
+            return (String(s[start..<end]), end)
+        }
+        return nil
     }
 
-    static func bool(_ result: String, offset: String.Index? = nil) -> (Bool, String.Index) {
-        let (s, end) = extractString(result, start: offset ?? index0x(result))
-        return (!s.hasSuffix("0"), end)
+    static func bool(_ result: String, offset: String.Index? = nil) -> (Bool, String.Index)? {
+        if let (s, end) = extractHexFragment(result, start: offset ?? index0x(result)) {
+            return (!s.hasSuffix("0"), end)
+        }
+        return nil
     }
 
-    static func int(_ result: String, offset: String.Index? = nil) -> (Int, String.Index) {
-        let (s, end) = extractString(result, start: offset ?? index0x(result))
-        return (Int(s, radix: 16)!, end)
+    static func int(_ result: String, offset: String.Index? = nil) -> (Int, String.Index)? {
+        if let (s, end) = extractHexFragment(result, start: offset ?? index0x(result)) {
+            return (Int(s, radix: 16)!, end)
+        }
+        return nil
     }
 
-    static func uint256(_ result: String, offset: String.Index? = nil) -> (UInt256, String.Index) {
-        let (s, end) = extractString(result, start: offset ?? index0x(result))
-        return (UInt256(s, radix: 16)!, end)
+    static func uint256(_ result: String, offset: String.Index? = nil) -> (UInt256, String.Index)? {
+        if let (s, end) = extractHexFragment(result, start: offset ?? index0x(result)) {
+            return (UInt256(s, radix: 16)!, end)
+        }
+        return nil
     }
 
-    static func bytes(_ result: String, offset: String.Index? = nil) -> (Data, String.Index) {
-        let (s, end) = extractString(result, start: offset ?? index0x(result))
-        return (Data(hex: s), end)
+    static func bytes(_ result: String, offset: String.Index? = nil) -> (Data, String.Index)? {
+        if let (s, end) = extractHexFragment(result, start: offset ?? index0x(result)) {
+            return (Data(hex: s), end)
+        }
+        return nil
     }
 
-    static func address(_ result: String, offset: String.Index? = nil) -> (Address, String.Index) {
-        let (s, end) = extractString(result, start: offset ?? index0x(result))
-        let hex = s.suffix(from: s.index(s.startIndex, offsetBy: 24))
-        return (try! Address(String(hex)), end)
+    static func address(_ result: String, offset: String.Index? = nil) -> (Address, String.Index)? {
+        if let (s, end) = extractHexFragment(result, start: offset ?? index0x(result)) {
+            let hex = s.suffix(from: s.index(s.startIndex, offsetBy: 24))
+            return (try! Address(String(hex)), end)
+        }
+        return nil
     }
 
-    static func dynamicBytes(_ result: String, at: Int) -> Data {
-        let lengthStart = result.index(index0x(result), offsetBy: at * 2)
-        let (length, start) = EthDecoder.int(result, offset: lengthStart)
-        let end = result.index(start, offsetBy: length * 2)
-        let s = result[start..<end]
-        let bytes = [UInt8](hex: String(s))
-        return Data(bytes)
+    static func dynamicBytes(_ result: String, at: Int) -> Data? {
+        if let lengthStart = result.index(index0x(result), offsetBy: at * 2, limitedBy: result.endIndex),
+           let (length, start) = EthDecoder.int(result, offset: lengthStart),
+           let end = result.index(start, offsetBy: length * 2, limitedBy: result.endIndex) {
+            let s = result[start..<end]
+            let bytes = [UInt8](hex: String(s))
+            return Data(bytes)
+        }
+        return nil
     }
 
-    static func string(_ result: String, at: Int) -> String {
-        return String(data: dynamicBytes(result, at: at), encoding: String.Encoding.utf8)!
+    static func string(_ result: String, at: Int) -> String? {
+        if let data = dynamicBytes(result, at: at) {
+            return String(data: data, encoding: String.Encoding.utf8)!
+        }
+        return nil
     }
 }
