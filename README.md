@@ -26,7 +26,7 @@ Resolve IPFS/IPNS/Swarm URL:
 ```swift
 // in async function
 let vitalik = "vitalik.eth"
-let vitalikURL = try await enskit.resolve(name: vitalik)
+let vitalikURL: URL? = try await enskit.resolve(name: vitalik)
 ```
 
 Get domain avatar as `Data`:
@@ -34,7 +34,7 @@ Get domain avatar as `Data`:
 ```swift
 // in async function
 let vitalik = "vitalik.eth"
-let vitalikAvatar = try await enskit.avatar(name: vitalik)
+let vitalikAvatar: Data? = try await enskit.avatar(name: vitalik)
 ```
 
 Get domain avatar URL:
@@ -42,8 +42,15 @@ Get domain avatar URL:
 // in async function
 let vitalik = "vitalik.eth"
 if let avatar = try await enskit.getAvatar(name: vitalik) {
-    let url = try await enskit.getAvatarImageURL(avatar: avatar)
+    let url: URL? = try await enskit.getAvatarImageURL(avatar: avatar)
 }
+```
+
+Get domain email:
+```swift
+// in async function
+let coa = "coa.eth"
+let text: String? = try await enskit.text(name: coa, key: "email")
 ```
 
 ## License

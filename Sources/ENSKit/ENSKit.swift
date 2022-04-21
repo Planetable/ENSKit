@@ -39,6 +39,16 @@ public struct ENSKit {
         return nil
     }
 
+    public func text(name: String, key: String) async throws -> String? {
+        let contract = RegistryContract(client: jsonrpcClient)
+        let namehash = Namehash.namehash(name)
+        guard let resolverAddress = try await contract.resolver(namehash: namehash) else {
+            return nil
+        }
+        let resolver = PublicResolverContract(client: jsonrpcClient, address: resolverAddress)
+        return try await resolver.text(namehash: namehash, key: key)
+    }
+
     public func getAvatar(name: String) async throws -> ENSAvatar? {
         let contract = RegistryContract(client: jsonrpcClient)
         let namehash = Namehash.namehash(name)
@@ -46,7 +56,7 @@ public struct ENSKit {
             return nil
         }
         let resolver = PublicResolverContract(client: jsonrpcClient, address: resolverAddress)
-        let result = try await resolver.text(namehash: namehash, key: "avatar")
+        let result = try await text(name: name, key: "avatar")
         if let text = result {
             if text.isHTTPSURL() {
                 return .HTTPS(URL(string: text)!)

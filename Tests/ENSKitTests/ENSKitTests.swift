@@ -29,4 +29,9 @@ final class ENSKitTests: XCTestCase {
         let uniswap = try await main.resolve(name: "uniswap.eth")
         XCTAssertEqual(uniswap, URL(string: "ipns://app.uniswap.org"))
     }
+
+    func testResolveText() async throws {
+        let coaEmail = try await main.text(name: "coa.eth", key: "email")
+        XCTAssertEqual(coaEmail, "hello@carloscar.com")
+    }
 }
