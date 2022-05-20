@@ -35,8 +35,8 @@ final class ERC721Tests: XCTestCase {
     func testTokenURI() async throws {
         let contract = ERC721(client: client, address: contractAddress)
         let url = try await contract.tokenURI(tokenId: tokenId)
-        // X Rabbit Club has updated their token URI on IPFS
-        // last updated: 2022-04-21
-        XCTAssertEqual(url, URL(string: "ipfs://QmUSVTRCEULv41EVDmfdh6vyXu6pFbnXofhgWu4JcuNTyP/42")!)
+        // X Rabbit Club has updated their token URI
+        // last updated: 2022-05-20
+        XCTAssertEqual(url, URL(string: "https://xrabbits.club/api/metadata/42")!)
     }
 }

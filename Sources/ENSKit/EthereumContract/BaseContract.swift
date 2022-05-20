@@ -87,11 +87,22 @@ struct EthEncoder {
 }
 
 struct EthDecoder {
-    static func index0x(_ s: String) -> String.Index {
-        s.index(s.startIndex, offsetBy: 2)
+    static func index0x(_ s: String) -> String.Index? {
+        if s.starts(with: "0x") {
+            return s.index(s.startIndex, offsetBy: 2)
+        }
+        return nil
     }
 
-    static func extractHexFragment(_ s: String, start: String.Index) -> (String, String.Index)? {
+    static func extractHexFragment(_ s: String, start _start: String.Index? = nil) -> (String, String.Index)? {
+        let start: String.Index
+        if let i = _start {
+            start = i
+        } else if let i = index0x(s) {
+            start = i
+        } else {
+            return nil
+        }
         if let end = s.index(start, offsetBy: 64, limitedBy: s.endIndex) {
             return (String(s[start..<end]), end)
         }
@@ -135,7 +146,8 @@ struct EthDecoder {
     }
 
     static func dynamicBytes(_ result: String, at: Int) -> Data? {
-        if let lengthStart = result.index(index0x(result), offsetBy: at * 2, limitedBy: result.endIndex),
+        if let i = index0x(result),
+           let lengthStart = result.index(i, offsetBy: at * 2, limitedBy: result.endIndex),
            let (length, start) = EthDecoder.int(result, offset: lengthStart),
            let end = result.index(start, offsetBy: length * 2, limitedBy: result.endIndex) {
             let s = result[start..<end]
