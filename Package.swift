@@ -14,14 +14,14 @@ let package = Package(
             targets: ["ENSKit"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", .upToNextMajor(from: "1.4.3")),
-        .package(url: "https://github.com/SwiftyJSON/SwiftyJSON.git", .upToNextMajor(from: "5.0.1")),
-        .package(url: "https://github.com/stdc105/UInt256.git", .upToNextMajor(from: "0.3.0")),
-        .package(url: "https://github.com/keefertaylor/Base58Swift.git", .upToNextMajor(from: "2.1.0")),
+        .package(url: "https://github.com/attaswift/BigInt.git", from: "5.3.0"),
+        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.4.3"),
+        .package(url: "https://github.com/SwiftyJSON/SwiftyJSON.git", from: "5.0.1"),
+        .package(url: "https://github.com/stdc105/UInt256.git", from: "0.3.0"),
     ],
     targets: [.target(
             name: "ENSKit",
-            dependencies: ["Base58Swift", "CryptoSwift", "SwiftyJSON", "UInt256"]),
+            dependencies: ["BigInt", "CryptoSwift", "SwiftyJSON", "UInt256"]),
         .testTarget(
             name: "ENSKitTests",
             dependencies: ["ENSKit"]),

@@ -37,7 +37,8 @@ final class PublicResolverContractTests: XCTestCase {
     func testContentHash() async throws {
         let contract = PublicResolverContract(client: client, address: resolverAddress)
         let vitalikContentHash = try await contract.contenthash(namehash: vitalik)
-        XCTAssertEqual(vitalikContentHash, "e301017012202586ef250b90c3fab1acf2da2216dfcbbda0beff8d87126732ba342f223f2a81".hexToData())
+        // last updated: 2022-05-27
+        XCTAssertEqual(vitalikContentHash, "e30101701220c0f696cb9f07b617bb7151405d704a321ff0a84964e3c661f8f2f06c1bdd8f1e".hexToData())
     }
 
     func testText() async throws {

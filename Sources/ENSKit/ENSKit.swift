@@ -8,7 +8,6 @@
 import Foundation
 import SwiftyJSON
 import UInt256
-import Base58Swift
 
 public struct ENSKit {
     public var jsonrpcClient: JSONRPC
@@ -109,7 +108,7 @@ public struct ENSKit {
     }
 
     public func getContentHashURL(_ contenthash: Data) -> URL? {
-        // supports IPFS, IPNS, and Swarm
+        // Supports IPFS, IPNS, and Swarm
         // ContentHash specification: [ENSIP-7](https://docs.ens.domains/ens-improvement-proposals/ensip-7-contenthash-field)
         // ContentHash is encoded with [multicodec](https://github.com/multiformats/multicodec/blob/master/table.csv)
         // multicodec identifiers are encoded with [unsigned-varint](https://github.com/multiformats/unsigned-varint)
@@ -118,39 +117,57 @@ public struct ENSKit {
 
         let bytes = contenthash.bytes
         // 0xe301 = VarUInt(0xe3): ipfs-ns, 0x01: cidv1, 0x70: dag-pb
-        if bytes.starts(with: [227, 1, 1, 112]) {
-            guard let (_, lengthIndex) = VarUInt.decodeBytes(bytes, offset: 4),
-                  let (length, contentIndex) = VarUInt.decodeBytes(bytes, offset: lengthIndex),
+        if bytes.starts(with: [0xe3, 0x01, 0x01, 0x70]) {
+            guard let (_, lengthIndex) = VarUInt.decode(bytes, offset: 4),
+                  let (length, contentIndex) = VarUInt.decode(bytes, offset: lengthIndex),
                   contentIndex + length == bytes.count else {
                 return nil
             }
             let content = [UInt8](bytes.suffix(from: 4))
-            return URL(string: "ipfs://" + Base58.base58Encode(content))
+            return URL(string: "ipfs://" + Base58.encode(content))
         }
         // 0xe401 = VarUInt(0xe4): swarm-ns, 0x01: cidv1, 0xfa01 = VarUInt(0xfa): swarm-manifest, 0x1b: keccak256, 0x20: 20 bytes
-        if bytes.starts(with: [228, 1, 1, 250, 1, 27, 32]) && bytes.count == 39 {
+        if bytes.starts(with: [0xe4, 0x01, 0x01, 0xfa, 0x01, 0x1b, 0x20]) && bytes.count == 39 {
             let content = [UInt8](bytes.suffix(from: 7))
             return URL(string: "bzz://" + content.toHexString())
         }
         // 0xe501 = VarUInt(0xe5): ipns-ns, 0x01: cidv1, 0x70: dag-pb
-        if bytes.starts(with: [229, 1, 1, 112]) {
-            guard let (hashType, lengthIndex) = VarUInt.decodeBytes(bytes, offset: 4),
-                  let (length, contentIndex) = VarUInt.decodeBytes(bytes, offset: lengthIndex),
+        if bytes.starts(with: [0xe5, 0x01, 0x01, 0x70]) {
+            guard let (hashType, lengthIndex) = VarUInt.decode(bytes, offset: 4),
+                  let (length, contentIndex) = VarUInt.decode(bytes, offset: lengthIndex),
                   contentIndex + length == bytes.count else {
                 return nil
             }
             if hashType == 0 {
-                // 0x00: identity (no process on content, parse as UTF8)
+                // 0x00: identity (no process on content)
+                // ContentHash is mostly likely a DNSLink, e.g. ipns://app.uniswap.org
+                // Parse content as UTF-8
                 let content = [UInt8](bytes.suffix(from: contentIndex))
                 guard let contentString = String(data: Data(content), encoding: .utf8) else {
                     return nil
                 }
                 return URL(string: "ipns://" + contentString)
-            } else {
-                // probably a hash, such as 0x12: sha2-256
-                let content = [UInt8](bytes.suffix(from: 4))
-                return URL(string: "ipns://" + Base58.base58Encode(content))
             }
+            // Unsupported IPNS content
+        }
+        // 0xe501 = VarUInt(0xe5): ipns-ns, 0x01: cidv1, 0x72: libp2p-key
+        if bytes.starts(with: [0xe5, 0x01, 0x01, 0x72]) {
+            guard let (hashType, lengthIndex) = VarUInt.decode(bytes, offset: 4),
+                  let (length, contentIndex) = VarUInt.decode(bytes, offset: lengthIndex),
+                  contentIndex + length == bytes.count else {
+                return nil
+            }
+            if hashType == 0 {
+                // 0x00: identity (no process on content)
+                // ContentHash is mostly likely a DNSLink, e.g. ipns://app.uniswap.org
+                // Encode content as a CID
+                let key = [UInt8](bytes.suffix(from: contentIndex))
+                // 0x01: cidv1, 0x72: libp2p-key, 0x00: identity, VarUInt(length)
+                let multiformatPrefix: [UInt8] = [0x01, 0x72, 0x00] + VarUInt.encode(length)!
+                // multibase base36 (lowercased): character "k" before content
+                return URL(string: "ipns://k" + Base36.encode(multiformatPrefix + key).lowercased())
+            }
+            // Unsupported IPNS content
         }
         return nil
     }

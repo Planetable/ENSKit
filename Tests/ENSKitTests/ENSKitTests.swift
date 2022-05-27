@@ -22,10 +22,16 @@ final class ENSKitTests: XCTestCase {
 
     func testResolveIPFS() async throws {
         let vitalik = try await main.resolve(name: "vitalik.eth")
-        XCTAssertEqual(vitalik, URL(string: "ipfs://QmQs98YJ6ynaeEQQ2t6j7H36hQyBNRVV1URptK8EjywKqi"))
+        // last updated: 2022-05-27
+        XCTAssertEqual(vitalik, URL(string: "ipfs://QmbKu58pyq3WRgWNDv9Zat39QzB7jpzgZ2iSzaXjwas4MB"))
     }
 
     func testResolveIPNS() async throws {
+        let planetable = try await main.resolve(name: "planetable.eth")
+        XCTAssertEqual(planetable, URL(string: "ipns://k51qzi5uqu5dgv8kzl1anc0m74n6t9ffdjnypdh846ct5wgpljc7rulynxa74a"))
+    }
+
+    func testResolveIPNSWithDNSLink() async throws {
         let uniswap = try await main.resolve(name: "uniswap.eth")
         XCTAssertEqual(uniswap, URL(string: "ipns://app.uniswap.org"))
     }

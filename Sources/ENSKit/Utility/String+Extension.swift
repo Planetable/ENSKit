@@ -9,10 +9,10 @@ import Foundation
 import CryptoSwift
 import UInt256
 
-public extension String {
+extension String {
     @inlinable
     func keccak256() -> String {
-        SHA3(variant: .keccak256).calculate(for: self.bytes).toHexString()
+        SHA3(variant: .keccak256).calculate(for: bytes).toHexString()
     }
 
     @inlinable

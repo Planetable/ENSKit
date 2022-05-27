@@ -9,12 +9,12 @@ import Foundation
 
 // A Swift Implementation of [varuint](https://github.com/multiformats/unsigned-varint)
 
-public struct VarUInt {
+struct VarUInt {
     // support up to 28 bits
     // to support full 63 bits, append to bases until 1 << 56
-    public static var bases = [1, 1 << 7, 1 << 14, 1 << 21]
+    static var bases = [1, 1 << 7, 1 << 14, 1 << 21]
 
-    public static func decodeBytes(_ bytes: [UInt8], offset: Int = 0) -> (Int, Int)? {
+    static func decode(_ bytes: [UInt8], offset: Int = 0) -> (Int, Int)? {
         var i = offset
         var j = 0
         var result = 0
@@ -36,7 +36,7 @@ public struct VarUInt {
         return nil
     }
 
-    public static func encodeBytes(_ number: Int) -> [UInt8]? {
+    static func encode(_ number: Int) -> [UInt8]? {
         var result = [UInt8]()
         var num = number
         for _ in 0..<bases.count {
@@ -51,4 +51,3 @@ public struct VarUInt {
         return nil
     }
 }
-
