@@ -30,7 +30,7 @@ protocol BaseContract {
 extension BaseContract {
     func ethCall(_ data: String) async throws -> JSON {
         let params: JSON = [
-            ["to": address.toHexString(), "data": data],
+            ["to": address.toHexString(options: [.lowercase]), "data": data],
             "latest"
         ]
         let response = try await client.request(method: "eth_call", params: params)
@@ -71,7 +71,7 @@ struct EthEncoder {
     }
 
     static func address(_ address: Address) -> String {
-        String(repeating: "0", count: 24) + address.toHexString(options: [])
+        String(repeating: "0", count: 24) + address.toHexString(options: [.no0xPrefix, .lowercase])
     }
 
     static func dynamicBytes(_ bytes: Data) -> String {
