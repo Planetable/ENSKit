@@ -4,11 +4,11 @@ import Foundation
 import BigInt
 import CryptoSwift
 
-protocol BaseN {
+public protocol BaseN {
     static var alphabet: String { get }
 }
 
-extension BaseN {
+public extension BaseN {
     static var cipher: [UInt8] {
         get {
             [UInt8](alphabet.utf8)
@@ -54,21 +54,21 @@ extension BaseN {
     }
 }
 
-struct Base36: BaseN {
-    static var alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+public struct Base36: BaseN {
+    public static var alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 }
 
-struct Base58: BaseN {
-    static var alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+public struct Base58: BaseN {
+    public static var alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
     // Reference: https://en.bitcoin.it/wiki/Base58Check_encoding
-    static func encodeCheck(_ bytes: [UInt8]) -> String {
+    public static func encodeCheck(_ bytes: [UInt8]) -> String {
         let checksum = calculateChecksum(bytes)
         let bytesWithChecksum = bytes + checksum
         return encode(bytesWithChecksum)
     }
 
-    static func decodeCheck(_ input: String) -> [UInt8]? {
+    public static func decodeCheck(_ input: String) -> [UInt8]? {
         guard let bytesWithChecksum = decode(input) else {
             return nil
         }
@@ -83,7 +83,7 @@ struct Base58: BaseN {
         return Array(bytes)
     }
 
-    static func calculateChecksum(_ input: [UInt8]) -> [UInt8] {
+    public static func calculateChecksum(_ input: [UInt8]) -> [UInt8] {
         let hashed = input.sha256()
         let doubleHashed = hashed.sha256()
         return Array(doubleHashed.prefix(4))
