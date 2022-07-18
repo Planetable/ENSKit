@@ -1,10 +1,3 @@
-//
-//  RegistryContractTests.swift
-//
-//
-//  Created by Shu Lyu on 2022-03-18.
-//
-
 import XCTest
 @testable import ENSKit
 

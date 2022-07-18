@@ -1,10 +1,3 @@
-//
-//  ERC721Tests.swift
-//
-//
-//  Created by Shu Lyu on 2022-03-23.
-//
-
 import XCTest
 @testable import ENSKit
 import UInt256

@@ -1,10 +1,3 @@
-//
-//  ERC1155.swift
-//
-//
-//  Created by Shu Lyu on 2022-03-20.
-//
-
 import Foundation
 import UInt256
 

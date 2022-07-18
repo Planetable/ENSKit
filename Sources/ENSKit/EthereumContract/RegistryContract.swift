@@ -1,10 +1,3 @@
-//
-//  RegistryContract.swift
-//
-//
-//  Created by Shu Lyu on 2022-03-15.
-//
-
 import Foundation
 import SwiftyJSON
 

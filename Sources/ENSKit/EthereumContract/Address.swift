@@ -1,10 +1,3 @@
-//
-//  Address.swift
-//
-//
-//  Created by Shu Lyu on 2022-03-22.
-//
-
 import Foundation
 
 public struct Address: Equatable {

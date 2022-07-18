@@ -1,10 +1,3 @@
-//
-//  Namehash.swift
-//  
-//
-//  Created by Shu Lyu on 2022-03-29.
-//
-
 import CryptoSwift
 import Foundation
 

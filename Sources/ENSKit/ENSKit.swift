@@ -1,10 +1,3 @@
-//
-//  ENSKit.swift
-//
-//
-//  Created by Shu Lyu on 2022-03-15.
-//
-
 import Foundation
 import SwiftyJSON
 import UInt256
@@ -30,10 +23,10 @@ public struct ENSKit {
     }
 
     public func avatar(name: String) async throws -> Data? {
-        if let avatar = try await getAvatar(name: name) {
-            if let url = try await getAvatarImageURL(avatar: avatar) {
-                return try await getAvatarImage(imageURL: url)
-            }
+        if let avatar = try await getAvatar(name: name),
+           let url = try await getAvatarImageURL(from: avatar),
+           let data = try await getAvatarImageData(from: url) {
+            return data
         }
         return nil
     }
@@ -57,14 +50,17 @@ public struct ENSKit {
         let resolver = PublicResolverContract(client: jsonrpcClient, address: resolverAddress)
         let result = try await text(name: name, key: "avatar")
         if let text = result {
-            if text.isHTTPSURL() {
-                return .HTTPS(URL(string: text)!)
-            }
-            if text.isIPFSURL() {
-                return .IPFS(URL(string: text)!)
-            }
-            if text.isDataURL() {
-                return .Data(URL(string: text)!)
+            if let url = URL(string: text),
+               let scheme = url.scheme?.lowercased() {
+                if scheme == "http" || scheme == "https" {
+                    return .HTTPS(url)
+                }
+                if scheme == "ipfs" || scheme == "ipns" {
+                    return .IPFS(url)
+                }
+                if scheme == "data" {
+                    return .Data(url)
+                }
             }
             if let (tokenType, tokenAddress, tokenId) = text.matchERCTokens() {
                 guard let domainOwner = try await resolver.addr(namehash: namehash) else {
@@ -140,7 +136,7 @@ public struct ENSKit {
             }
             if hashType == 0 {
                 // 0x00: identity (no process on content)
-                // ContentHash is mostly likely a DNSLink, e.g. ipns://app.uniswap.org
+                // ContentHash is most likely a DNSLink, e.g. ipns://app.uniswap.org
                 // Parse content as UTF-8
                 let content = [UInt8](bytes.suffix(from: contentIndex))
                 guard let contentString = String(data: Data(content), encoding: .utf8) else {
@@ -172,7 +168,7 @@ public struct ENSKit {
         return nil
     }
 
-    public func getAvatarImageURL(avatar: ENSAvatar) async throws -> URL? {
+    public func getAvatarImageURL(from avatar: ENSAvatar) async throws -> URL? {
         switch avatar {
         case .Data(let url), .HTTPS(let url), .IPFS(let url):
             return url
@@ -207,7 +203,7 @@ public struct ENSKit {
         }
     }
 
-    public func getAvatarImage(imageURL: URL) async throws -> Data? {
+    public func getAvatarImageData(from imageURL: URL) async throws -> Data? {
         if isIPFSURL(imageURL) {
             return try await ipfsClient.getIPFSURL(url: imageURL)
         }

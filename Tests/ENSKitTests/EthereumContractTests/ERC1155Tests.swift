@@ -1,10 +1,3 @@
-//
-//  ERC1155Tests.swift
-//
-//
-//  Created by Shu Lyu on 2022-03-23.
-//
-
 import UInt256
 import XCTest
 @testable import ENSKit

@@ -1,10 +1,3 @@
-//
-//  IPFSClient.swift
-//
-//
-//  Created by Shu Lyu on 2022-03-26.
-//
-
 import Foundation
 import SwiftyJSON
 import UInt256
