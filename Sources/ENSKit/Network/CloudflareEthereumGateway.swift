@@ -17,9 +17,11 @@ public struct CloudflareEthereumGateway: JSONRPC {
         request.httpBody = payload
 
         let (data, response) = try await URLSession.shared.data(for: request)
-        let httpResponse = response as! HTTPURLResponse
-        if !httpResponse.ok {
-            throw JSONRPCError.HTTPError(status: httpResponse.statusCode, data: data)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.ok
+        else {
+            throw JSONRPCError.NetworkError(response: response, data: data)
         }
         return try getResponseResult(data)
     }

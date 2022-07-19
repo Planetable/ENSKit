@@ -7,7 +7,7 @@ public protocol IPFSClient {
 }
 
 public struct IPFSGatewayClient: IPFSClient {
-    let baseURL: String
+    public let baseURL: String
 
     public init(baseURL: String) {
         self.baseURL = baseURL
@@ -15,23 +15,20 @@ public struct IPFSGatewayClient: IPFSClient {
 
     public func getIPFSURL(url: URL) async throws -> Data? {
         let str = url.absoluteString
-        let suffix: String
-        let prefix: String
-        if let range = str.range(of: "ipfs://ipfs/", options: [.caseInsensitive, .anchored]) {
-            prefix = "ipfs"
-            suffix = String(str[range.upperBound..<str.endIndex])
+        let requestURLString: String
+        if str.lowercased().starts(with: "ipfs://ipfs/") {
+            requestURLString = "\(baseURL)/ipfs/\(str.dropFirst("ipfs://ipfs/".count))"
         } else {
-            if url.scheme?.lowercased() == "ipns" {
-                prefix = "ipns"
-            } else {
-                prefix = "ipfs"
-            }
-            suffix = String(str.suffix(from: str.index(str.startIndex, offsetBy: 7)))
+            let scheme = url.scheme?.lowercased() ?? "ipfs"
+            requestURLString = "\(baseURL)/\(scheme)/\(str.dropFirst(scheme.count + "://".count))"
         }
-        let requestURL = URL(string: "\(baseURL)/\(prefix)/\(suffix)")!
+        guard let requestURL = URL(string: requestURLString) else {
+            return nil
+        }
         let request = URLRequest(url: requestURL)
         let (data, response) = try await URLSession.shared.data(for: request)
-        if !(response as! HTTPURLResponse).ok {
+        if let httpResponse = response as? HTTPURLResponse,
+           !httpResponse.ok {
             return nil
         }
         return data

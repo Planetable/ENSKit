@@ -2,7 +2,7 @@ import Foundation
 import SwiftyJSON
 
 public enum JSONRPCError: Error {
-    case HTTPError(status: Int, data: Data)
+    case NetworkError(response: URLResponse, data: Data)
     case InvalidJSONRPCParams
     case InvalidJSONRPCResponse
 }

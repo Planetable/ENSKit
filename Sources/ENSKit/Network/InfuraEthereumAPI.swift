@@ -2,26 +2,26 @@ import Foundation
 import SwiftyJSON
 
 public struct InfuraEthereumAPI: JSONRPC {
-    let url: URL
-    let projectSecret: String?
-    let jwt: String?
+    public let url: URL
+    public let projectSecret: String?
+    public let jwt: String?
 
     public init(url: URL) {
         self.url = url
-        self.projectSecret = nil
-        self.jwt = nil
+        projectSecret = nil
+        jwt = nil
     }
 
     public init(url: URL, projectSecret: String) {
         self.url = url
         self.projectSecret = projectSecret
-        self.jwt = nil
+        jwt = nil
     }
 
     public init(url: URL, jwt: String) {
         self.url = url
         self.jwt = jwt
-        self.projectSecret = nil
+        projectSecret = nil
     }
 
     public func request(method: String, params: JSON) async throws -> JSONRPCResponse {
@@ -42,10 +42,10 @@ public struct InfuraEthereumAPI: JSONRPC {
         request.httpBody = payload
 
         let (data, response) = try await URLSession.shared.data(for: request)
-        let httpResponse = response as! HTTPURLResponse
-        if !httpResponse.ok {
-            throw JSONRPCError.HTTPError(status: httpResponse.statusCode, data: data)
+        if let httpResponse = response as? HTTPURLResponse,
+           httpResponse.ok {
+            return try getResponseResult(data)
         }
-        return try getResponseResult(data)
+        throw JSONRPCError.NetworkError(response: response, data: data)
     }
 }

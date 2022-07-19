@@ -133,7 +133,9 @@ struct EthDecoder {
     static func address(_ result: String, offset: String.Index? = nil) -> (Address, String.Index)? {
         if let (s, end) = extractHexFragment(result, start: offset ?? index0x(result)) {
             let hex = s.suffix(from: s.index(s.startIndex, offsetBy: 24))
-            return (try! Address(String(hex)), end)
+            if let address = try? Address(String(hex)) {
+                return (address, end)
+            }
         }
         return nil
     }
@@ -152,7 +154,7 @@ struct EthDecoder {
 
     static func string(_ result: String, at: Int) -> String? {
         if let data = dynamicBytes(result, at: at) {
-            return String(data: data, encoding: String.Encoding.utf8)!
+            return String(data: data, encoding: .utf8)!
         }
         return nil
     }

@@ -15,13 +15,17 @@ public struct OpenSea: NFTPlatform {
     }
 
     public func getNFTImageURL(address: Address, tokenId: UInt256) async throws -> URL? {
-        let url = URL(string: "\(baseURL)/\(address.toHexString())/\(tokenId.toDecimalString())/")!
+        guard let url = URL(string: "\(baseURL)/\(address.toHexString())/\(tokenId.toDecimalString())/") else {
+            return nil
+        }
         var request = URLRequest(url: url)
-        if let key = apiKey {
-            request.setValue(key, forHTTPHeaderField: "X-API-KEY")
+        if let apiKey = apiKey {
+            request.setValue(apiKey, forHTTPHeaderField: "X-API-KEY")
         }
         let (data, response) = try await URLSession.shared.data(for: request)
-        if !(response as! HTTPURLResponse).ok {
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.ok
+        else {
             return nil
         }
         let asset = try JSON(data: data)

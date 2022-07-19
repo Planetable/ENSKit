@@ -33,7 +33,7 @@ public extension BaseN {
         let prefix = Array(bytes.prefix { $0 == 0 }).map { _ in cipher[0] }
         answer.insert(contentsOf: prefix, at: 0)
 
-        return String(bytes: answer, encoding: String.Encoding.utf8)!
+        return String(bytes: answer, encoding: .utf8)!
     }
 
     static func decode(_ input: String) -> [UInt8]? {

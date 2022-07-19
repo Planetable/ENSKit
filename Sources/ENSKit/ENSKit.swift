@@ -7,9 +7,11 @@ public struct ENSKit {
     public var nftPlatform: NFTPlatform
     public var ipfsClient: IPFSClient
 
-    public init(jsonrpcClient: JSONRPC = CloudflareEthereumGateway(),
-         nftPlatform: NFTPlatform = OpenSea(),
-         ipfsClient: IPFSClient = IPFSGatewayClient(baseURL: "https://cloudflare-ipfs.com")) {
+    public init(
+        jsonrpcClient: JSONRPC = CloudflareEthereumGateway(),
+        nftPlatform: NFTPlatform = OpenSea(),
+        ipfsClient: IPFSClient = IPFSGatewayClient(baseURL: "https://cloudflare-ipfs.com")
+    ) {
         self.jsonrpcClient = jsonrpcClient
         self.nftPlatform = nftPlatform
         self.ipfsClient = ipfsClient
@@ -210,7 +212,8 @@ public struct ENSKit {
         let request = URLRequest(url: imageURL)
         let (data, response) = try await URLSession.shared.data(for: request)
         // `data:` URI is officially supported by ENS spec
-        if let httpResponse = (response as? HTTPURLResponse), !httpResponse.ok {
+        if let httpResponse = response as? HTTPURLResponse,
+           !httpResponse.ok {
             return nil
         }
         return data
@@ -228,7 +231,8 @@ public struct ENSKit {
             let request = URLRequest(url: metadataURL)
             let response: URLResponse
             (data, response) = try await URLSession.shared.data(for: request)
-            if let httpResponse = (response as? HTTPURLResponse), !httpResponse.ok {
+            if let httpResponse = response as? HTTPURLResponse,
+               !httpResponse.ok {
                 return nil
             }
         }

@@ -1,10 +1,10 @@
 import Foundation
 
 public struct Address: Equatable {
-    static let Null = try! Address("0x0000000000000000000000000000000000000000")
-    let hex: String
+    public static let Null = try! Address("0x0000000000000000000000000000000000000000")
+    public let hex: String
 
-    static func withChecksum(_ hex: String) -> String {
+    public static func withChecksum(_ hex: String) -> String {
         let lower = hex.lowercased()
         let hash = [UInt8](lower.keccak256().utf8)
         var result = ""
@@ -19,15 +19,17 @@ public struct Address: Equatable {
         return result
     }
 
-    init(_ hex: String) throws {
+    public init(_ hex: String) throws {
         let hexMatcher = try! NSRegularExpression(pattern: #"^(0[xX])?([0-9a-fA-F]{40})$"#)
         let hexRange = NSRange(hex.startIndex..<hex.endIndex, in: hex)
-        guard let match = hexMatcher.firstMatch(in: hex, range: hexRange), match.numberOfRanges == 3 else {
+        guard let match = hexMatcher.firstMatch(in: hex, range: hexRange),
+              match.numberOfRanges == 3,
+              let resultRange = Range(match.range(at: 2), in: hex)
+        else {
             throw AddressError.NotHexString
         }
-        let resultRange = Range(match.range(at: 2), in: hex)!
         let extractedHex = String(hex[resultRange])
-        let hexWithChecksum = Address.withChecksum(extractedHex)
+        let hexWithChecksum = Self.withChecksum(extractedHex)
 
         var hasLowercase = false, hasUppercase = false
         for char in hex {
