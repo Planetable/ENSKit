@@ -21,7 +21,7 @@ final class PublicResolverContractTests: XCTestCase {
         XCTAssertTrue(supportContentHash)
     }
 
-    func testAddress() async throws {
+    func testAddr() async throws {
         let contract = PublicResolverContract(client: client, address: resolverAddress)
         let vitalikAddress = try await contract.addr(namehash: vitalik)
         XCTAssertEqual(vitalikAddress!, try! Address("0xd8da6bf26964af9d7eed9e03e53415d37aa96045"))
