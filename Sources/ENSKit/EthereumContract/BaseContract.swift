@@ -21,9 +21,17 @@ protocol BaseContract {
 }
 
 extension BaseContract {
+    // Reference: https://ethereum.github.io/execution-apis/api-documentation/
     func ethCall(_ data: String) async throws -> JSON {
         let params: JSON = [
-            ["to": address.toHexString(options: [.lowercase]), "data": data],
+            [
+                "to": address.toHexString(options: [.lowercase]),
+                // "data" is renamed to "input" and is preferred in geth
+                // most ethereum implementations accept either "data" or "input"
+                // Reference: https://github.com/ethereum/execution-apis/pull/201
+                // Reference: https://github.com/ethereum/go-ethereum/blob/51de2bc9dcffa12d4ca70eb4ddee6f53281c5358/internal/ethapi/transaction_args.go#L46-L47
+                "data": data,
+            ],
             "latest"
         ]
         let response = try await client.request(method: "eth_call", params: params)
@@ -34,9 +42,61 @@ extension BaseContract {
             throw EthereumError(error)
         }
     }
+
+    func ethGetLogs(topics: [String] = [], fromBlock: String = "earliest", toBlock: String = "latest") async throws -> JSON {
+        let params: JSON = [
+            [
+                "address": address.toHexString(options: [.lowercase]),
+                "topics": topics,
+                "fromBlock": fromBlock,
+                "toBlock": toBlock,
+            ]
+        ]
+        let response = try await client.request(method: "eth_getLogs", params: params)
+        switch response {
+        case .result(let result):
+            return result
+        case .error(let error):
+            throw EthereumError(error)
+        }
+    }
 }
 
-struct EthEncoder {
+struct ContractEvent {
+    let removed: Bool?
+    let address: Address?
+    let topics: [String]?
+    let data: String?
+    let blockNumber: UInt64?
+    // only transaction hash is required
+    let transactionHash: String
+    let transactionIndex: String?
+    let blockHash: String?
+    let logIndex: String?
+
+    init(from json: JSON) throws {
+        guard let transactionHash = json["transactionHash"].string else {
+            throw ContractError()
+        }
+        self.transactionHash = transactionHash
+        address = try json["address"].string.map { try Address($0) }
+        removed = json["removed"].bool
+        topics = json["topics"].array?.map { $0.stringValue }
+        data = json["data"].string
+        blockNumber = json["blockNumber"].string.flatMap {
+            if $0.starts(with: "0x"),
+               let value = UInt64($0.dropFirst(2), radix: 16) {
+                return value
+            }
+            return nil
+        }
+        transactionIndex = json["transactionIndex"].string
+        blockHash = json["blockHash"].string
+        logIndex = json["logIndex"].string
+    }
+}
+
+struct ContractEncoder {
     static func funcSignature(_ signature: String) -> FuncHash {
         String(signature.keccak256().prefix(8))
     }
@@ -68,18 +128,18 @@ struct EthEncoder {
     }
 
     static func dynamicBytes(_ bytes: Data) -> String {
-        let bytesLength = EthEncoder.int(bytes.count)
+        let bytesLength = ContractEncoder.int(bytes.count)
         let remainder = bytes.count % 32
         let padding = remainder > 0 ? 32 - remainder : 0
         return bytesLength + bytes.toHexString() + String(repeating: "0", count: padding * 2)
     }
 
     static func string(_ string: String) -> String {
-        EthEncoder.dynamicBytes(string.data(using: .utf8)!)
+        ContractEncoder.dynamicBytes(string.data(using: .utf8)!)
     }
 }
 
-struct EthDecoder {
+struct ContractDecoder {
     static func index0x(_ s: String) -> String.Index? {
         if s.starts(with: "0x") {
             return s.index(s.startIndex, offsetBy: 2)
@@ -143,7 +203,7 @@ struct EthDecoder {
     static func dynamicBytes(_ result: String, at: Int) -> Data? {
         if let i = index0x(result),
            let lengthStart = result.index(i, offsetBy: at * 2, limitedBy: result.endIndex),
-           let (length, start) = EthDecoder.int(result, offset: lengthStart),
+           let (length, start) = ContractDecoder.int(result, offset: lengthStart),
            let end = result.index(start, offsetBy: length * 2, limitedBy: result.endIndex) {
             let s = result[start..<end]
             let bytes = [UInt8](hex: String(s))
@@ -159,3 +219,5 @@ struct EthDecoder {
         return nil
     }
 }
+
+// Probably need an `EventEncoder` for encode and hash indexed and non-indexed event topics

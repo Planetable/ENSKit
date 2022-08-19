@@ -20,28 +20,28 @@ struct ERC1155: BaseContract {
         let data = "0x" + interfaces["supportsInterface"]! + funcHash + String(repeating: "0", count: 56)
         let result = try await ethCall(data)
         let s = result.stringValue
-        if let (supported, _) = EthDecoder.bool(s) {
+        if let (supported, _) = ContractDecoder.bool(s) {
             return supported
         }
         throw ContractError()
     }
 
     func balanceOf(owner: Address, tokenId: UInt256) async throws -> Int {
-        let data = "0x" + interfaces["balanceOf"]! + EthEncoder.address(owner) + EthEncoder.uint256(tokenId)
+        let data = "0x" + interfaces["balanceOf"]! + ContractEncoder.address(owner) + ContractEncoder.uint256(tokenId)
         let result = try await ethCall(data)
         let s = result.stringValue
-        if let (balance, _) = EthDecoder.int(s) {
+        if let (balance, _) = ContractDecoder.int(s) {
             return balance
         }
         throw ContractError()
     }
 
     func uri(tokenId: UInt256) async throws -> URL? {
-        let data = "0x" + interfaces["uri"]! + EthEncoder.uint256(tokenId)
+        let data = "0x" + interfaces["uri"]! + ContractEncoder.uint256(tokenId)
         let result = try await ethCall(data)
         let s = result.stringValue
-        if let (at, _) = EthDecoder.int(s),
-           let uriString = EthDecoder.string(s, at: at) {
+        if let (at, _) = ContractDecoder.int(s),
+           let uriString = ContractDecoder.string(s, at: at) {
             return URL(string: uriString)
         }
         return nil

@@ -41,11 +41,7 @@ public struct InfuraEthereumAPI: JSONRPC {
         }
         request.httpBody = payload
 
-        let (data, response) = try await URLSession.shared.data(for: request)
-        if let httpResponse = response as? HTTPURLResponse,
-           httpResponse.ok {
-            return try getResponseResult(data)
-        }
-        throw JSONRPCError.NetworkError(response: response, data: data)
+        let (data, _) = try await URLSession.shared.data(for: request)
+        return try getResponseResult(data)
     }
 }
