@@ -2,7 +2,7 @@ import XCTest
 @testable import ENSKit
 
 final class RegistryContractTests: XCTestCase {
-    let client = CloudflareEthereumGateway()
+    let client = EthereumAPI.Cloudflare
 
     func testResolver() async throws {
         let contract = RegistryContract(client: client)

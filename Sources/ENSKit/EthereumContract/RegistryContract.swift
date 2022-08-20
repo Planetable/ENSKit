@@ -16,10 +16,10 @@ struct RegistryContract: BaseContract {
     }
 
     func resolver(namehash: Data) async throws -> Address? {
-        let data = "0x" + interfaces["resolver"]! + EthEncoder.bytes(namehash)
+        let data = "0x" + interfaces["resolver"]! + ContractEncoder.bytes(namehash)
         let result = try await ethCall(data)
         let s = result.stringValue
-        if let (address, _) = EthDecoder.address(s),
+        if let (address, _) = ContractDecoder.address(s),
            address != Address.Null {
             return address
         }
