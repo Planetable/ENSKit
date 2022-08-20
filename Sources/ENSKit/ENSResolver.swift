@@ -1,6 +1,16 @@
 import Foundation
 import SwiftyJSON
 
+public struct ContenthashHistory {
+    public let date: Date
+    public let contenthash: URL?
+}
+
+public struct AddrHistory {
+    public let date: Date
+    public let addr: Address
+}
+
 public struct ENSResolver {
     let jsonrpcClient: JSONRPC
     let nftPlatform: NFTPlatform
@@ -215,5 +225,39 @@ public struct ENSResolver {
             return URL(string: imageURL)
         }
         return nil
+    }
+
+    public func searchAddrHistory() async throws -> [AddrHistory] {
+        let events = try await resolver.addrChangedEvents(namehash: namehash)
+        var history: [AddrHistory] = []
+        for event in events {
+            if let s = event.data,
+               let (address, _) = ContractDecoder.address(s),
+               let blockNumber = event.blockNumber {
+                let blockJSON = try await resolver.ethGetBlockByNumber(blockNumber: blockNumber)
+                let block = try BlockStub(from: blockJSON)
+                history.append(AddrHistory(date: block.date, addr: address))
+            }
+        }
+        history.sort { $0.date > $1.date }
+        return history
+    }
+
+    public func searchContenthashHistory() async throws -> [ContenthashHistory] {
+        let events = try await resolver.contenthashChangedEvents(namehash: namehash)
+        var history: [ContenthashHistory] = []
+        for event in events {
+            if let s = event.data,
+               let (at, _) = ContractDecoder.int(s),
+               let data = ContractDecoder.dynamicBytes(s, at: at),
+               let blockNumber = event.blockNumber {
+                let contenthash = getContentHashURL(from: data)
+                let blockJSON = try await resolver.ethGetBlockByNumber(blockNumber: blockNumber)
+                let block = try BlockStub(from: blockJSON)
+                history.append(ContenthashHistory(date: block.date, contenthash: contenthash))
+            }
+        }
+        history.sort { $0.date > $1.date }
+        return history
     }
 }

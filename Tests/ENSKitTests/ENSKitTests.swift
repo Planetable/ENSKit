@@ -3,6 +3,7 @@ import XCTest
 
 final class ENSKitTests: XCTestCase {
     let main = ENSKit()
+    let infura = ENSKit(jsonrpcClient: InfuraEthereumAPI(url: URL(string: "https://mainnet.infura.io/v3/4cd2c3b40ea8423fa889fc479e05f082")!))
 
     func testAvatarURL() async throws {
         if let resolver = try await main.resolver(name: "vitalik.eth"),
@@ -33,5 +34,31 @@ final class ENSKitTests: XCTestCase {
     func testText() async throws {
         let coaEmail = await main.text(name: "coa.eth", key: "email")
         XCTAssertEqual(coaEmail, "hello@carloscar.com")
+    }
+
+    func testSearchAddrHistory() async throws {
+        if let resolver = try await infura.resolver(name: "vitalik.eth") {
+            let vitalikAddrHistory = try await resolver.searchAddrHistory()
+            // the transaction 0x160ef4492c731ac6b59beebe1e234890cd55d4c556f8847624a0b47125fe4f84 emitted two `AddrChanged` events
+            XCTAssertEqual(
+                vitalikAddrHistory[0].addr,
+                try! Address("0xd8da6bf26964af9d7eed9e03e53415d37aa96045")
+            )
+        } else {
+            XCTFail()
+        }
+    }
+
+    func testSearchContenthashHistory() async throws {
+        if let resolver = try await infura.resolver(name: "vitalik.eth") {
+            let vitalikContenthashHistory = try await resolver.searchContenthashHistory()
+            // last updated: 2022-08-15
+            XCTAssertEqual(
+                vitalikContenthashHistory[0].contenthash!,
+                URL(string: "ipfs://QmQhCuJqSk9fF58wU58oiaJ1qbZwQ1eQ8mVzNWe7tgLNiD")!
+            )
+        } else {
+            XCTFail()
+        }
     }
 }

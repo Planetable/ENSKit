@@ -56,6 +56,24 @@ public struct ENSKit {
         }
         return nil
     }
+
+    public func lastAddrChange(name: String) async -> AddrHistory? {
+        if let resolver = try? await resolver(name: name),
+           let history = try? await resolver.searchAddrHistory(),
+           !history.isEmpty {
+            return history[0]
+        }
+        return nil
+    }
+
+    public func lastContenthashChange(name: String) async -> ContenthashHistory? {
+        if let resolver = try? await resolver(name: name),
+           let history = try? await resolver.searchContenthashHistory(),
+           !history.isEmpty {
+            return history[0]
+        }
+        return nil
+    }
 }
 
 public enum ENSAvatar {
