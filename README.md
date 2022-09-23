@@ -10,7 +10,7 @@ Setup:
 let enskit = ENSKit()
 
 // Use a built-in public RPC
-let flashbot = ENSKit(jsonrpcClient: EhtereumAPI.Flashbots)
+let flashbot = ENSKit(jsonrpcClient: EthereumAPI.Flashbots)
 
 // Use Infura Ethereum API
 let infuraURL = URL(string: "https://mainnet.infura.io/v3/<projectid>")!
@@ -77,7 +77,7 @@ In addition, all methods in resolver are marked with `throw` keyword. An empty r
 ENSKit supports contract events. You can search for history of contenthash changes and Ethereum wallet changes of an ENS:
 ```swift
 // Cloudflare Ethereum Gateway (default) does not support full history of events
-let enskit = ENSKit(jsonrpcClient: EhtereumAPI.Flashbots)
+let enskit = ENSKit(jsonrpcClient: EthereumAPI.Flashbots)
 if let resolver = try await enskit.resolver(name: "<your_ens>.eth") {
     if let addrHistory = try await resolver.searchAddrHistory(),
        !addrHistory.isEmpty {
@@ -96,7 +96,7 @@ History entries are sorted by newest first.
 
 If you only concern about the latest change, there are also convenience methods in `ENSKit`:
 ```swift
-let enskit = ENSKit(jsonrpcClient: EhtereumAPI.Flashbots)
+let enskit = ENSKit(jsonrpcClient: EthereumAPI.Flashbots)
 let lastAddrChange = await enskit.lastAddrChange(name: "<your_ens>.eth")
 ```
 
