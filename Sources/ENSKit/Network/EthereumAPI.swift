@@ -8,6 +8,7 @@ public struct EthereumAPI: JSONRPC {
     public static let MyCryptoAPI = EthereumAPI(url: URL(string: "https://api.mycryptoapi.com/eth")!)
     public static let Flashbots = EthereumAPI(url: URL(string: "https://rpc.flashbots.net/")!)
     public static let MewAPI = EthereumAPI(url: URL(string: "https://nodes.mewapi.io/rpc/eth")!)
+    public static let OneRPC = EthereumAPI(url: URL(string: "https://1rpc.io/eth")!)
 
     public let url: URL
 

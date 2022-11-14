@@ -20,6 +20,10 @@ final class EthereumAPITests: XCTestCase {
         try await test(client: EthereumAPI.Flashbots)
     }
 
+    func testOneRPC() async throws {
+        try await test(client: EthereumAPI.OneRPC)
+    }
+
     func test(client: EthereumAPI) async throws {
         try await testNetVersion(client: client)
         try await testEthGetLogs(client: client)
