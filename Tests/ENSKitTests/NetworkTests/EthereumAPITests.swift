@@ -54,8 +54,8 @@ final class EthereumAPITests: XCTestCase {
         case .error(_):
             XCTFail("eth_getLogs")
         case .result(let result):
-            // last updated: 2022-08-18
-            XCTAssertEqual(result.arrayValue.count, 8)
+            // last updated: 2022-11-14
+            XCTAssertEqual(result.arrayValue.count, 11)
         }
     }
 }

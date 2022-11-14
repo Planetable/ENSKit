@@ -49,6 +49,14 @@ public struct ENSKit {
         return nil
     }
 
+    public func addr(name: String) async -> String? {
+        if let resolver = try? await resolver(name: name),
+           let addr = try? await resolver.addr() {
+            return addr
+        }
+        return nil
+    }
+
     public func text(name: String, key: String) async -> String? {
         if let resolver = try? await resolver(name: name),
            let text = try? await resolver.text(key: key) {

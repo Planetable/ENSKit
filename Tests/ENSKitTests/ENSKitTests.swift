@@ -17,8 +17,8 @@ final class ENSKitTests: XCTestCase {
 
     func testIPFSContenthash() async throws {
         let vitalik = await main.contenthash(name: "vitalik.eth")
-        // last updated: 2022-08-15
-        XCTAssertEqual(vitalik, URL(string: "ipfs://QmQhCuJqSk9fF58wU58oiaJ1qbZwQ1eQ8mVzNWe7tgLNiD"))
+        // last updated: 2022-11-14
+        XCTAssertEqual(vitalik, URL(string: "ipfs://QmR68RscKq47i6mkKR2xPqEuobs3hJQtXfG7hQnsepR7ZB"))
     }
 
     func testIPNSContenthash() async throws {
@@ -29,6 +29,11 @@ final class ENSKitTests: XCTestCase {
     func testIPNSWithDNSLinkContenthash() async throws {
         let uniswap = await main.contenthash(name: "uniswap.eth")
         XCTAssertEqual(uniswap, URL(string: "ipns://app.uniswap.org"))
+    }
+
+    func testAddr() async throws {
+        let vitalikAddr = await main.addr(name: "vitalik.eth")
+        XCTAssertEqual(vitalikAddr, "d8dA6BF26964aF9D7eEd9e03E53415D37aA96045")
     }
 
     func testText() async throws {
@@ -52,10 +57,10 @@ final class ENSKitTests: XCTestCase {
     func testSearchContenthashHistory() async throws {
         if let resolver = try await infura.resolver(name: "vitalik.eth") {
             let vitalikContenthashHistory = try await resolver.searchContenthashHistory()
-            // last updated: 2022-08-15
+            // last updated: 2022-11-14
             XCTAssertEqual(
                 vitalikContenthashHistory[0].contenthash!,
-                URL(string: "ipfs://QmQhCuJqSk9fF58wU58oiaJ1qbZwQ1eQ8mVzNWe7tgLNiD")!
+                URL(string: "ipfs://QmR68RscKq47i6mkKR2xPqEuobs3hJQtXfG7hQnsepR7ZB")!
             )
         } else {
             XCTFail()
