@@ -12,16 +12,16 @@ final class EthereumAPITests: XCTestCase {
         try await test(client: EthereumAPI.MewAPI)
     }
 
-    func testMyCryptoAPI() async throws {
-        try await test(client: EthereumAPI.MyCryptoAPI)
-    }
-
     func testFlashbots() async throws {
         try await test(client: EthereumAPI.Flashbots)
     }
 
     func testOneRPC() async throws {
         try await test(client: EthereumAPI.OneRPC)
+    }
+
+    func testOneKey() async throws {
+        try await test(client: EthereumAPI.OneKey)
     }
 
     func test(client: EthereumAPI) async throws {
