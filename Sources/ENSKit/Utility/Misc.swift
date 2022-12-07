@@ -55,3 +55,29 @@ extension HTTPURLResponse {
         statusCode >= 200 && statusCode < 300
     }
 }
+
+extension UInt256 {
+    public func toDecimalString() -> String {
+        // Create a string to hold the decimal value
+        var decimalString = ""
+
+        // Set the current value to the input value
+        var currentValue = self
+
+        // Continue looping until the current value is 0
+        while currentValue > 0 {
+            // Divide the current value by 10 and store the remainder as the next digit
+            // in the decimal string
+            decimalString = "\(currentValue % 10)" + decimalString
+            currentValue /= 10
+        }
+
+        // If the decimal string is empty, set it to "0"
+        if decimalString.isEmpty {
+            decimalString = "0"
+        }
+
+        // Return the decimal string
+        return decimalString
+    }
+}

@@ -84,7 +84,7 @@ public struct ENSKit {
     }
 }
 
-public enum ENSAvatar {
+public enum ENSAvatar: Equatable {
     case HTTPS(URL)
     case IPFS(URL)
     case Data(URL)

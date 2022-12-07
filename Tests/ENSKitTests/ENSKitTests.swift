@@ -15,10 +15,19 @@ final class ENSKitTests: XCTestCase {
         }
     }
 
+    func testNFTAvatar() async throws {
+        if let resolver = try await main.resolver(name: "coa.eth"),
+           let avatar = try await resolver.getAvatar() {
+            XCTAssertEqual(avatar, ENSAvatar.ERC721(try! Address("0x5180db8f5c931aae63c74266b211f580155ecac8"), 8900))
+        } else {
+            XCTFail()
+        }
+    }
+
     func testIPFSContenthash() async throws {
         let vitalik = await main.contenthash(name: "vitalik.eth")
-        // last updated: 2022-11-14
-        XCTAssertEqual(vitalik, URL(string: "ipfs://QmR68RscKq47i6mkKR2xPqEuobs3hJQtXfG7hQnsepR7ZB"))
+        // last updated: 2022-12-06
+        XCTAssertEqual(vitalik, URL(string: "ipfs://QmX5msQu2YCSd9NYusWaNrVuk92encdzyXnQ3mYQHNW1vw"))
     }
 
     func testIPNSContenthash() async throws {
@@ -55,12 +64,12 @@ final class ENSKitTests: XCTestCase {
     }
 
     func testSearchContenthashHistory() async throws {
-        if let resolver = try await infura.resolver(name: "vitalik.eth") {
-            let vitalikContenthashHistory = try await resolver.searchContenthashHistory()
-            // last updated: 2022-11-14
+        if let resolver = try await infura.resolver(name: "planetable.eth") {
+            let planetableContenthashHistory = try await resolver.searchContenthashHistory()
+            // last updated: 2022-12-06
             XCTAssertEqual(
-                vitalikContenthashHistory[0].contenthash!,
-                URL(string: "ipfs://QmR68RscKq47i6mkKR2xPqEuobs3hJQtXfG7hQnsepR7ZB")!
+                planetableContenthashHistory[0].contenthash!,
+                URL(string: "ipns://k51qzi5uqu5dgv8kzl1anc0m74n6t9ffdjnypdh846ct5wgpljc7rulynxa74a")!
             )
         } else {
             XCTFail()

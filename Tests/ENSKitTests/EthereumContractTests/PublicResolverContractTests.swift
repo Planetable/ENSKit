@@ -6,6 +6,7 @@ final class PublicResolverContractTests: XCTestCase {
     let client = InfuraEthereumAPI(url: URL(string: "https://mainnet.infura.io/v3/4cd2c3b40ea8423fa889fc479e05f082")!)
     let resolverAddress = try! Address("0x4976fb03c32e5b8cfe2b6ccb31c09ba78ebaba41")
     let vitalik = Namehash.namehash("vitalik.eth")
+    let planetable = Namehash.namehash("planetable.eth")
 
     func testSupportsInterface() async throws {
         let contract = PublicResolverContract(client: client, address: resolverAddress)
@@ -29,9 +30,10 @@ final class PublicResolverContractTests: XCTestCase {
 
     func testContentHash() async throws {
         let contract = PublicResolverContract(client: client, address: resolverAddress)
-        let vitalikContentHash = try await contract.contenthash(namehash: vitalik)
-        // last updated: 2022-11-14
-        XCTAssertEqual(vitalikContentHash?.toHexString(), "e3010170122028dab11ef0c420d1e616f9ecdc59ad00a07049b636a6d94437b9cedce2fad7f2")
+        let planetableContentHash = try await contract.contenthash(namehash: planetable)
+        XCTAssertNotNil(planetableContentHash)
+        // last updated: 2022-12-06
+        XCTAssertEqual(planetableContentHash?.toHexString(), "e50101720024080112201b78b16d294d40117c9029caeab5e742c6adbed2233bf6369d7d94254faf1f8a")
     }
 
     func testText() async throws {
