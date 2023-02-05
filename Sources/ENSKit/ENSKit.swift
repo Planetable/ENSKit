@@ -33,6 +33,11 @@ public struct ENSKit {
         )
     }
 
+    public func resolver(addr: String) async throws -> ENSResolver? {
+        let reversedDomain = addr.lowercased().replacingOccurrences(of: "0x", with: "") + ".addr.reverse"
+        return try await resolver(name: reversedDomain)
+    }
+
     public func contenthash(name: String) async -> URL? {
         if let resolver = try? await resolver(name: name),
            let contenthash = try? await resolver.contenthash() {
