@@ -49,6 +49,14 @@ if let email = try await enskit.text(name: "<your_ens>.eth", key: "email") {
 }
 ```
 
+Resolve address to name:
+```swift
+// in async function
+if let name = try await enskit.name(addr: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045") {
+    // 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 would resolve to vitalik.eth
+}
+```
+
 ## Advanced Usage
 
 ### `ENSResolver` Interface
