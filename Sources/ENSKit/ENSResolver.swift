@@ -34,6 +34,13 @@ public struct ENSResolver {
         return nil
     }
 
+    public func name() async throws -> String? {
+        if let name: String = try await resolver.name(namehash: namehash) {
+            return name
+        }
+        return nil
+    }
+
     public func avatar() async throws -> Data? {
         if let avatar = try await getAvatar(),
            let url = try await getAvatarImageURL(from: avatar),

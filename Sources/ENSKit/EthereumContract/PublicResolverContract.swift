@@ -8,6 +8,7 @@ struct PublicResolverContract: BaseContract {
     var interfaces = [
         "supportsInterface": "01ffc9a7",    // supportsInterface(bytes4)
         "addr": "3b3b57de",                 // addr(bytes32)
+        "name": "691f3431",                 // name(bytes32)
         "text": "59d1d43c",                 // text(bytes32,string)
         "contenthash": "bc1c58d1"           // contenthash(bytes32)
     ]
@@ -38,6 +39,18 @@ struct PublicResolverContract: BaseContract {
         if let (address, _) = ContractDecoder.address(s),
            address != Address.Null {
             return address
+        }
+        return nil
+    }
+
+    func name(namehash: Data) async throws -> String? {
+        let data = "0x" + interfaces["name"]! + ContractEncoder.bytes(namehash)
+        let result = try await ethCall(data)
+        let s = result.stringValue
+        if let (at, _) = ContractDecoder.int(s),
+           let name = ContractDecoder.string(s, at: at),
+           !name.isEmpty {
+            return name
         }
         return nil
     }

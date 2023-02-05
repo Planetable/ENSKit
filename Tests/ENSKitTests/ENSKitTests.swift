@@ -45,6 +45,11 @@ final class ENSKitTests: XCTestCase {
         XCTAssertEqual(vitalikAddr, "d8dA6BF26964aF9D7eEd9e03E53415D37aA96045")
     }
 
+    func testName() async throws {
+        let vitalikName = await main.name(addr: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045")
+        XCTAssertEqual(vitalikName, "vitalik.eth")
+    }
+
     func testText() async throws {
         let coaEmail = await main.text(name: "coa.eth", key: "email")
         XCTAssertEqual(coaEmail, "hello@carloscar.com")

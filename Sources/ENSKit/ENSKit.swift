@@ -57,6 +57,15 @@ public struct ENSKit {
         return nil
     }
 
+    public func name(addr: String) async -> String? {
+        let reversedDomain = addr.lowercased().replacingOccurrences(of: "0x", with: "") + ".addr.reverse"
+        if let resolver = try? await resolver(name: reversedDomain),
+           let name = try? await resolver.name() {
+            return name
+        }
+        return nil
+    }
+
     public func text(name: String, key: String) async -> String? {
         if let resolver = try? await resolver(name: name),
            let text = try? await resolver.text(key: key) {
