@@ -18,7 +18,7 @@ final class ENSKitTests: XCTestCase {
     func testNFTAvatar() async throws {
         if let resolver = try await main.resolver(name: "coa.eth"),
            let avatar = try await resolver.getAvatar() {
-            XCTAssertEqual(avatar, ENSAvatar.ERC721(try! Address("0x5180db8f5c931aae63c74266b211f580155ecac8"), 8900))
+            XCTAssertEqual(avatar, ENSAvatar.ERC1155(try! Address("0x7831729a089df41d7c5bcbd5cebb9d7d131addd3"), 11))
         } else {
             XCTFail()
         }
@@ -26,8 +26,8 @@ final class ENSKitTests: XCTestCase {
 
     func testIPFSContenthash() async throws {
         let vitalik = await main.contenthash(name: "vitalik.eth")
-        // last updated: 2022-12-06
-        XCTAssertEqual(vitalik, URL(string: "ipfs://QmX5msQu2YCSd9NYusWaNrVuk92encdzyXnQ3mYQHNW1vw"))
+        // last updated: 2023-02-05
+        XCTAssertEqual(vitalik, URL(string: "ipfs://QmbnJF7ZsAFybQcW9XwBNFXsZW7yaMeqveeJb6hLri9UjJ"))
     }
 
     func testIPNSContenthash() async throws {

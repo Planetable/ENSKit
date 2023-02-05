@@ -5,7 +5,9 @@ import SwiftyJSON
 final class EthereumAPITests: XCTestCase {
     func testCloudflare() async throws {
         try await test(client: EthereumAPI.Cloudflare)
-        XCTExpectFailure("Cloudflare does not support data older than 128 blocks")
+        // It seems Cloudflare can support data older than 128 blocks now:
+        // https://developers.cloudflare.com/web3/ethereum-gateway/concepts/node-types/
+        // XCTExpectFailure("Cloudflare does not support data older than 128 blocks")
     }
 
     func testMewAPI() async throws {
@@ -58,8 +60,8 @@ final class EthereumAPITests: XCTestCase {
         case .error(_):
             XCTFail("eth_getLogs")
         case .result(let result):
-            // last updated: 2022-12-06
-            XCTAssertEqual(result.arrayValue.count, 16)
+            // last updated: 2023-02-05
+            XCTAssertEqual(result.arrayValue.count, 18)
         }
     }
 }
