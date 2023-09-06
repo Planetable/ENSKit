@@ -25,6 +25,7 @@ final class EthereumAPITests: XCTestCase {
     func test(client: EthereumAPI) async throws {
         try await testNetVersion(client: client)
         try await testEthGetLogs(client: client)
+        try await testNFTLogs(client: client)
     }
 
     func testNetVersion(client: EthereumAPI) async throws {
@@ -58,6 +59,34 @@ final class EthereumAPITests: XCTestCase {
         case .result(let result):
             // last updated: 2023-09-05
             XCTAssertEqual(result.arrayValue.count, 26)
+        }
+    }
+
+    func testNFTLogs(client: EthereumAPI) async throws {
+        let params: JSON = [
+            [
+                "address": "0x3f98e2b3237a61348585c9bdb30a5571ff59cc41",
+                "topics": [
+                    "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+                    "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    "0x00000000000000000000000018deee9699526f8c8a87004b2e4e55029fb26b9a"
+                ],
+                "fromBlock": "earliest",
+                "toBlock": "latest"
+            ]
+        ]
+        let result = try await client.request(method: "eth_getLogs", params: params)
+        
+        switch result {
+        case .error(_):
+            XCTFail("eth_getLogs")
+        case .result(let result):
+            // last updated: 2023-09-05
+            XCTAssertEqual(result.arrayValue.count, 4)
+            let first = result[0]
+            // hex to dec
+            let hex = first["topics"][3].stringValue.dropFirst("0x00000000000000000000000000000000000000000000000000000000".count)
+            let dec = UInt64(hex, radix: 16)
         }
     }
 }
