@@ -4,7 +4,7 @@ import XCTest
 
 final class ERC1155Tests: XCTestCase {
     // Test against [Nyan Cat](https://etherscan.io/token/0xb32979486938aa9694bfc898f35dbed459f44424)
-    let client = EthereumAPI.Cloudflare
+    let client = EthereumAPI.Flashbots
     let contractAddress = try! Address("0xb32979486938aa9694bfc898f35dbed459f44424")
     let ownerAddress = try! Address("0xd8da6bf26964af9d7eed9e03e53415d37aa96045")
     let tokenId: UInt256 = 10063

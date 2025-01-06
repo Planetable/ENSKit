@@ -2,14 +2,14 @@ import XCTest
 @testable import ENSKit
 
 final class RegistryContractTests: XCTestCase {
-    let client = EthereumAPI.Cloudflare
+    let client = EthereumAPI.Flashbots
 
     func testResolver() async throws {
         let contract = RegistryContract(client: client)
         let vitalik = Namehash.namehash("vitalik.eth")
         let result = try await contract.resolver(namehash: vitalik)
         if let ethResolver = result {
-            XCTAssertEqual(ethResolver, try! Address("0x4976fb03c32e5b8cfe2b6ccb31c09ba78ebaba41"))
+            XCTAssertEqual(ethResolver, try! Address("0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63"))
         } else {
             XCTFail()
         }

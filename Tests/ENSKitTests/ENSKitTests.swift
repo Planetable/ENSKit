@@ -9,7 +9,7 @@ final class ENSKitTests: XCTestCase {
         if let resolver = try await main.resolver(name: "vitalik.eth"),
            let avatar = try await resolver.getAvatar(),
            let avatarURL = try await resolver.getAvatarImageURL(from: avatar) {
-            XCTAssertEqual(avatarURL, URL(string: "ipfs://ipfs/QmSP4nq9fnN9dAiCj42ug9Wa79rqmQerZXZch82VqpiH7U/image.gif")!)
+            XCTAssertEqual(avatarURL, URL(string: "https://euc.li/vitalik.eth")!)
         } else {
             XCTFail()
         }
@@ -26,8 +26,8 @@ final class ENSKitTests: XCTestCase {
 
     func testIPFSContenthash() async throws {
         let vitalik = await main.contenthash(name: "vitalik.eth")
-        // last updated: 2023-09-05
-        XCTAssertEqual(vitalik, URL(string: "ipfs://QmVTy7NyejPyCG7ums5jN1XVJS2Pg3fgTQjNxhZfjTFbqn"))
+        // last updated: 2025-JAN-06
+        XCTAssertEqual(vitalik, URL(string: "ipfs://QmQLCUE7kZJ6cHpA8B2YUfHUJkCTNDVE6FUyPZqVwC4d5D"))
     }
 
     func testIPNSContenthash() async throws {

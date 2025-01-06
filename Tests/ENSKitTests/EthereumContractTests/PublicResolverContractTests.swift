@@ -3,7 +3,7 @@ import XCTest
 
 final class PublicResolverContractTests: XCTestCase {
     // Test against .eth public resolver with Infura Ethereum API (please do not abuse my project id)
-    let client = InfuraEthereumAPI(url: URL(string: "https://mainnet.infura.io/v3/4cd2c3b40ea8423fa889fc479e05f082")!)
+    let client = EthereumAPI.Flashbots
     let resolverAddress = try! Address("0x4976fb03c32e5b8cfe2b6ccb31c09ba78ebaba41")
     let reverseResolverAddress: Address = try! Address("0x5fbb459c49bb06083c33109fa4f14810ec2cf358")
     let vitalik = Namehash.namehash("vitalik.eth")

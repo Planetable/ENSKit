@@ -3,7 +3,7 @@ import XCTest
 import UInt256
 
 final class BaseContractTests: XCTestCase {
-    let client = EthereumAPI.Cloudflare
+    let client = EthereumAPI.Flashbots
     let resolverAddress = try! Address("0x4976fb03c32e5b8cfe2b6ccb31c09ba78ebaba41")
 
     func testEthGetBlockByNumber() async throws {
