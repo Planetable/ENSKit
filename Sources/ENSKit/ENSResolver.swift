@@ -111,7 +111,7 @@ public struct ENSResolver {
         // Content ID is encoded with [cid](https://github.com/multiformats/cid)
         // Content is encoded with [multihash](https://github.com/multiformats/multihash)
 
-        let bytes = contenthash.bytes
+        let bytes = [UInt8](contenthash)
         // 0xe301 = VarUInt(0xe3): ipfs-ns, 0x01: cidv1, 0x70: dag-pb
         if bytes.starts(with: [0xe3, 0x01, 0x01, 0x70]) {
             guard let (_, lengthIndex) = VarUInt.decode(bytes, offset: 4),
