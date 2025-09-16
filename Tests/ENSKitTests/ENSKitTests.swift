@@ -27,8 +27,8 @@ final class ENSKitTests: XCTestCase {
 
     func testIPFSContenthash() async throws {
         let vitalik = await flashbots.contenthash(name: "vitalik.eth")
-        // last updated: 2025-MAR-23
-        XCTAssertEqual(vitalik, URL(string: "ipfs://QmPgcu3Edbm3SE6H9MY8qtCdCChJV5RyQ9JPLFDWrdeLDV"))
+        // last updated: 2025-SEP-16
+        XCTAssertEqual(vitalik, URL(string: "ipfs://QmdG7wJ7T1gmwdAsdRpTvMrQjW2hs4mZNc7K5PoAZHV8bD"))
     }
 
     func testIPNSContenthash() async throws {
